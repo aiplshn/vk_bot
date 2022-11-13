@@ -68,7 +68,7 @@ class message:
         return f"DELETE FROM {self.table_name}"
 
     def get_query_last_text(self) -> str:
-        return f"select text from {self.table_name} where id = (select seq from sqlite_sequence where name = '{self.table_name}')"
+        return f"select text from {self.table_name} where id_admin = {self.id_admin} and id <= (select seq from sqlite_sequence where name = '{self.table_name}') order by id DESC LIMIT 1"
 
 
 
@@ -150,9 +150,8 @@ class DBWorker:
             self.execute_query(msg.get_query_insert_into_table())
 
     def get_message(self, id) -> str:
-        adm = admin()
-        adm.id = id
         msg = message()
+        msg.id_admin = id
         text = self.execute_query_select(msg.get_query_last_text())
         return text[0][0]
 if __name__ == "__main__":
