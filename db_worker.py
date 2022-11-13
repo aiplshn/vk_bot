@@ -81,11 +81,15 @@ class message:
     def get_query_delete_last_message_for_admin(self) -> str:
         return f"DELETE FROM {self.table_name} WHERE id = (select id from {self.table_name} where id_admin = {self.id_admin} and id <= (select seq from sqlite_sequence where name = '{self.table_name}') order by id DESC LIMIT 1)"
 
-    def get_query_delay_message(self) -> str:
-        return f"select * from {self.table_name} WHERE datetime(send_time) IS NOT NULL;"
+    def get_query_delay_early_message(self) -> str:
+        return f"select * from {self.table_name} WHERE datetime(send_time) IS NOT NULL ORDER BY send_time ASC LIMIT 1;"
 
     def get_query_delete_for_id(self) -> str:
         return f"DELETE FROM {self.table_name} WHERE id = {self.id}"
+
+    def get_query_set_datetime_last_message(self) -> str:
+        return f"UPDATE {self.table_name} SET send_time = '{self.send_time}' WHERE id = (select id from {self.table_name} where id_admin = {self.id_admin} and id <= (select seq from sqlite_sequence where name = '{self.table_name}') order by id DESC LIMIT 1)"
+
 class DBWorker:
 
     def update_state(self, id_admin, state):
@@ -202,12 +206,18 @@ class DBWorker:
 
     def get_early_delay_message(self):
         msg = message()
-        return self.execute_query_select(msg.get_query_delay_message())
+        return self.execute_query_select(msg.get_query_delay_early_message())
         
     def delete_message_for_it_id(self, id):
         msg = message()
         msg.id = id
         self.execute_query(msg.get_query_delete_for_id())
-        
+
+    def update_datetime_message(self, id: int, send_time: str):
+        msg = message()
+        msg.id_admin = id
+        msg.send_time = send_time
+        self.execute_query(msg.get_query_set_datetime_last_message())
+
 if __name__ == "__main__":
     db = DBWorker()

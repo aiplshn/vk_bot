@@ -95,3 +95,59 @@ def send_now(id, message_id):
     send_msg(id, 'Готово!')
     DB.update_state(id, States.S_START)
     DB.delete_message_for_admin(id)
+
+def delay_message(id, message_id):
+    keyboard = gen_keyboard(['Сегодня',
+                             'Завтра',
+                             'Послезавтра',
+                             'Назад'],
+                            ['delay_today',
+                             'delay_tomorrow',
+                             'delay_day_after',
+                             'back_delay'])
+    send_msg(id,
+             "Выберите когда отправить или введите дату и время в формате 'ДД.ММ.ГГГГ ЧЧ:мм'.",
+             keyboard=keyboard, edit=True, message_id=message_id)
+    DB.update_state(id, States.S_DATE_TIME)
+
+def delay_today(id, message_id):
+    keyboard = gen_keyboard(['*Сегодня',
+                             'Завтра',
+                             'Послезавтра',
+                             'Назад'],
+                            ['delay_today',
+                             'delay_tomorrow',
+                             'delay_day_after',
+                             'back_delay'])
+    send_msg(id,
+             "Введите время в формате 'ЧЧ:мм'.",
+             keyboard=keyboard, edit=True, message_id=message_id)
+    DB.update_state(id, States.S_TIME_TODAY)
+
+def delay_tomorrow(id, message_id):
+    keyboard = gen_keyboard(['Сегодня',
+                             '*Завтра',
+                             'Послезавтра',
+                             'Назад'],
+                            ['delay_today',
+                             'delay_tomorrow',
+                             'delay_day_after',
+                             'back_delay'])
+    send_msg(id,
+             "Введите время в формате 'ЧЧ:мм'.",
+             keyboard=keyboard, edit=True, message_id=message_id)
+    DB.update_state(id, States.S_TIME_TOMORROW)
+
+def delay_day_after(id, message_id):
+    keyboard = gen_keyboard(['Сегодня',
+                             'Завтра',
+                             '*Послезавтра',
+                             'Назад'],
+                            ['delay_today',
+                             'delay_tomorrow',
+                             'delay_day_after',
+                             'back_delay'])
+    send_msg(id,
+             "Введите время в формате 'ЧЧ:мм'.",
+             keyboard=keyboard, edit=True, message_id=message_id)
+    DB.update_state(id, States.S_TIME_AFTER_TOMORROW)
