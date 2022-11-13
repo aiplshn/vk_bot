@@ -1,11 +1,17 @@
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from globals import *
 
-def send_media(peer_id, attachments, msg='',keyboard = None, random_id=0,):
+def send_media(peer_id, attachments, msg='',keyboard = None, random_id=0, edit = False, message_id = 0):
     if keyboard == None:
-        VK.messages.send(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id)
+        if edit:
+            VK.messages.edit(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, conversation_message_id = message_id)
+        else:
+            VK.messages.send(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id)
     else:
-        VK.messages.send(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, keyboard=keyboard)
+        if edit:
+            VK.messages.edit(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, keyboard=keyboard, conversation_message_id = message_id)
+        else:
+            VK.messages.send(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, keyboard=keyboard)
 
 def send_msg(peer_id, msg, keyboard = None, edit = False, message_id = 0, random_id=0, ):
     if keyboard == None:

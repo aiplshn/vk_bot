@@ -3,16 +3,18 @@ import sqlite3
 class admin:
     id: int
     state: int
+    id_show_delay_message: int
+
     table_name = 'admin'
 
     def get_query_create_table(self) -> str:
-        return f"CREATE TABLE IF NOT EXISTS {self.table_name} (id INTEGER PRIMARY KEY NOT NULL, state INTEGER);"
+        return f"CREATE TABLE IF NOT EXISTS {self.table_name} (id INTEGER PRIMARY KEY NOT NULL, state INTEGER, id_show_delay_message INTEGER);"
 
     def get_query_drop_table(self) -> str:
         return f"DROP TABLE IF EXISTS {self.table_name}"
 
     def get_query_insert_into_table(self) -> str:
-        return f"""INSERT INTO {self.table_name} VALUES ({self.id}, {self.state})"""
+        return f"""INSERT INTO {self.table_name} VALUES ({self.id}, {self.state}, 0)"""
 
     def get_query_delete_all(self) -> str:
         return f"DELETE FROM {self.table_name}"
@@ -25,6 +27,12 @@ class admin:
 
     def get_query_update_state(self):
         return f"UPDATE {self.table_name} SET state = {self.state} WHERE id = {self.id}"
+
+    def get_query_update_show_message(self):
+        return f"UPDATE {self.table_name} SET id_show_delay_message = {self.id_show_delay_message} WHERE id = {self.id}"
+
+    def get_query_id_show_message(self) -> str:
+        return f"SELECT id_show_delay_message FROM {self.table_name} WHERE id = {self.id}"
 
 class user:
     id: int
@@ -89,6 +97,9 @@ class message:
 
     def get_query_set_datetime_last_message(self) -> str:
         return f"UPDATE {self.table_name} SET send_time = '{self.send_time}' WHERE id = (select id from {self.table_name} where id_admin = {self.id_admin} and id <= (select seq from sqlite_sequence where name = '{self.table_name}') order by id DESC LIMIT 1)"
+
+    def get_query_all_delay_messages(self) -> str:
+        return f"SELECT * FROM {self.table_name} WHERE datetime(send_time) IS NOT NULL ORDER BY send_time ASC"
 
 class DBWorker:
 
@@ -218,6 +229,49 @@ class DBWorker:
         msg.id_admin = id
         msg.send_time = send_time
         self.execute_query(msg.get_query_set_datetime_last_message())
+
+    def get_next_delay_message(self, id):
+        adm = admin()
+        adm.id = id
+        msg = message()
+        prev_id = self.execute_query_select(adm.get_query_id_show_message())
+        all_delay_messages = self.execute_query_select(msg.get_query_all_delay_messages())
+        if len(all_delay_messages) == 0:
+            return []
+        if prev_id[0][0] == 0: #первое
+            return all_delay_messages[0]
+        for i in range(len(all_delay_messages)):
+            if all_delay_messages[i][0] == prev_id[0][0]:
+                if i+1 < len(all_delay_messages):
+                    return all_delay_messages[i+1]
+                else:
+                    return []
+        
+    def get_prev_delay_message(self, id):
+        adm = admin()
+        adm.id = id
+        msg = message()
+        prev_id = self.execute_query_select(adm.get_query_id_show_message())
+        all_delay_messages = self.execute_query_select(msg.get_query_all_delay_messages())
+        if prev_id[0][0] == -1: #последнее
+            return all_delay_messages[len(all_delay_messages)-1]
+        for i in range(len(all_delay_messages)):
+            if all_delay_messages[i][0] == prev_id[0][0]:
+                if i-1 >= 0:
+                    return all_delay_messages[i-1]
+                else:
+                    return []
+
+    def update_id_show_delay_message(self, id, id_delay_message):
+        adm = admin()
+        adm.id = id
+        adm.id_show_delay_message = id_delay_message
+        self.execute_query(adm.get_query_update_show_message())
+
+    def get_id_show_delay_message(self, id):
+        adm = admin()
+        adm.id = id
+        return self.execute_query_select(adm.get_query_id_show_message())
 
 if __name__ == "__main__":
     db = DBWorker()

@@ -1,6 +1,7 @@
 from config import States
 from globals import *
 from support import *
+import datetime
 
 def own_type(user_id):
     print('success')
@@ -34,9 +35,6 @@ def create_messages(user_id, message_id):
 def add_photo(user_id, message_id):
     add_media(user_id, message_id, States.S_SEND_PIC, 'Отправь одно или несколько фото', 'back_send_photo')
     print('photo added')
-
-def show_delays_messages(user_id):
-    print('show delay msg')
 
 def add_admin(user_id):
     print('add admin')
@@ -151,3 +149,54 @@ def delay_day_after(id, message_id):
              "Введите время в формате 'ЧЧ:мм'.",
              keyboard=keyboard, edit=True, message_id=message_id)
     DB.update_state(id, States.S_TIME_AFTER_TOMORROW)
+
+def show_message(delay_message, id, message_id):
+    keyboard = gen_keyboard(['Следующее',
+                              'Предыдущее',
+                              'Назад'],
+                             ['next_show_delay_message',
+                              'prev_show_delay_message',
+                              'back_to_start'])
+    dt = datetime.datetime.strptime(delay_message[5], "%Y-%m-%d %H:%M:%S")
+    info = f"Дата и время рассылки: {dt.day}.{dt.month}.{dt.year} {dt.hour}:{dt.minute}\n----------\n"+delay_message[1]
+    if delay_message[2] != None:
+        send_media(id, delay_message[2], info, keyboard, edit=True, message_id=message_id)
+    else:
+        send_msg(id, info, keyboard, edit=True, message_id=message_id)
+    DB.update_id_show_delay_message(id, delay_message[0])
+
+
+def show_delays_messages(id, message_id):
+    delay_message = DB.get_next_delay_message(id)
+    if len(delay_message) == 0:
+        keyboard1 = gen_keyboard(['Назад'],
+                                 ['back_to_start'])
+        send_msg(id, 'Нет отложенных сообщений', keyboard=keyboard1, edit=True, message_id=message_id)
+        return
+    DB.update_state(id, States.S_SHOW_DELAY)
+    show_message(delay_message, id, message_id)
+    
+
+def next_show_delay_message(id, message_id):
+    delay_message = DB.get_next_delay_message(id)
+    keyboard = gen_keyboard(['Предыдущее',
+                              'Назад'],
+                             ['prev_show_delay_message',
+                              'back_to_start'])
+    if len(delay_message) == 0:
+        send_msg(id, 'Дальше нет отложенных сообщений', keyboard=keyboard, edit=True, message_id=message_id)
+        DB.update_id_show_delay_message(id, -1)
+        return
+    show_message(delay_message, id, message_id)
+
+def prev_show_delay_message(id, message_id):
+    delay_message = DB.get_prev_delay_message(id)
+    keyboard = gen_keyboard(['Следующее',
+                              'Назад'],
+                             ['next_show_delay_message',
+                              'back_to_start'])
+    if len(delay_message) == 0:
+        send_msg(id, 'Это первое сообщение', keyboard=keyboard, edit=True, message_id=message_id)
+        DB.update_id_show_delay_message(id, 0)
+        return
+    show_message(delay_message, id, message_id)

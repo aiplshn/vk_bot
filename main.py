@@ -113,4 +113,5 @@ for event in LONGPOLL.listen():
             getattr(bh, event.object.payload.get('type'))(int(event.obj['user_id']), event.obj.conversation_message_id)
 
     except:
+        print('stop_bot')
         break
