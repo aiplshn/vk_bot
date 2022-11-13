@@ -32,15 +32,7 @@ def create_messages(user_id, message_id):
     print('created')
 
 def add_photo(user_id, message_id):
-    DB.update_state(user_id, States.S_SEND_PIC)
-    keyboard = gen_keyboard(['Назад'], ['back_send_photo'])
-    VK.messages.edit(
-                    user_id=user_id,
-                    random_id=0,
-                    keyboard = keyboard,
-                    peer_id=user_id,
-                    conversation_message_id = message_id,
-                    message='Отправь фото')
+    add_media(user_id, message_id, States.S_SEND_PIC, 'Отправь одно или несколько фото', 'back_send_photo')
     print('photo added')
 
 def show_delays_messages(user_id):
@@ -49,3 +41,17 @@ def show_delays_messages(user_id):
 def add_admin(user_id):
     print('add admin')
 
+def add_video(user_id, message_id):
+    add_media(user_id, message_id, States.S_SEND_VIDEO, 'Отправь одно или несколько видео', 'back_send_video')
+    print('video added')
+
+def add_media(user_id, message_id, state, message, callback_name_back_btn):
+    DB.update_state(user_id, state)
+    keyboard = gen_keyboard(['Назад'], [callback_name_back_btn])
+    VK.messages.edit(
+                    user_id=user_id,
+                    random_id=0,
+                    keyboard = keyboard,
+                    peer_id=user_id,
+                    conversation_message_id = message_id,
+                    message=message)

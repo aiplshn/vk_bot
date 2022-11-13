@@ -83,8 +83,8 @@ for event in LONGPOLL.listen():
                         send_video(id)
                 else:
                     #Обработка состояния
-                    # if state == States.S_SEND_PIC:
-                        
+                    if state == States.S_SEND_VIDEO:
+                        pass
 
                         # VK.messages.send(peer_id=event.object.peer_id, random_id=0, attachment=event.message['attachments'])
                         # for item in event.object['attachments']:
@@ -108,8 +108,6 @@ for event in LONGPOLL.listen():
             print(event.object.payload.get('type'))
             print(event.obj['user_id'])
             getattr(bh, event.object.payload.get('type'))(event.obj['user_id'], event.obj.conversation_message_id)
-            # print(event.type)
-            # print(event.object.payload.get('type'))
-            # eval(event.object.payload.get('type'))()
+
     except:
         break

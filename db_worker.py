@@ -56,7 +56,7 @@ class message:
         self.audio_path = "''"
 
     def get_query_create_table(self) -> str:
-        return f"""CREATE TABLE IF NOT EXISTS {self.table_name} (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,text VARCHAR (2000),media_attachments VARCHAR (255), audio_path VARCHAR (255), id_admin INTEGER REFERENCES admin (id));"""
+        return f"""CREATE TABLE IF NOT EXISTS {self.table_name} (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,text VARCHAR (2000),media_attachments VARCHAR (2000), audio_path VARCHAR (255), id_admin INTEGER REFERENCES admin (id));"""
 
     def get_query_drop_table(self) -> str:
         return f"DROP TABLE IF EXISTS {self.table_name}"
@@ -157,7 +157,7 @@ class DBWorker:
         last_msg = self.execute_query_select(msg.get_query_last_message())
         return last_msg[0][1]
 
-    def save_photo(self, id, attachments):
+    def save_media(self, id, attachments):
         msg = message()
         msg.id_admin = id
         last_msg = self.execute_query_select(msg.get_query_last_message())
@@ -169,6 +169,7 @@ class DBWorker:
         else:
             msg.media_attachments = attachments
         self.execute_query(msg.get_query_update_attachments())
+        return msg.media_attachments
 
 
 if __name__ == "__main__":

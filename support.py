@@ -1,7 +1,7 @@
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from globals import *
 
-def send_photo1(peer_id, attachments, msg='',keyboard = None, random_id=0,):
+def send_media(peer_id, attachments, msg='',keyboard = None, random_id=0,):
     if keyboard == None:
         VK.messages.send(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id)
     else:
