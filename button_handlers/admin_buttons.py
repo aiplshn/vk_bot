@@ -91,12 +91,7 @@ def send_now(id, message_id):
     send_msg(id, 'Ожидай...', edit=True, message_id=message_id)
     attach = DB.get_last_attachments(id)
     msg = DB.get_last_message(id)
-    ids = DB.get_all_users()
-    for id_users in ids:
-        if attach != '':
-            send_media(id_users[0], attach, msg)
-        else:
-            send_msg(id_users[0], msg=msg)
+    mailing(msg, attachments=attach, db=DB)
     send_msg(id, 'Готово!')
     DB.update_state(id, States.S_START)
-    DB.delete_message(id)
+    DB.delete_message_for_admin(id)

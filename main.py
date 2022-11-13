@@ -1,12 +1,32 @@
-import requests
 from support import *
 from vk_api.bot_longpoll import VkBotEventType
 import button_handlers.admin_buttons as bh
 from globals import *
 from config import *
 from processing_state import processing_state
+import threading
+import time
+import datetime
 
 id_admin = 54442110
+
+def monitor_delay_messages():
+    i = 0
+    db = DBWorker()
+    while True:
+        i += 1
+        print(i)
+        time.sleep(1)
+        row_msg = db.get_early_delay_message()
+        if len(row_msg) != 0:
+            date_time_msg = datetime.datetime.strptime(row_msg[0][5],"%Y-%m-%d %H:%M:%S")
+            date_time_now = datetime.datetime.now()
+            delta = (date_time_msg - date_time_now).total_seconds()
+            print(delta)
+            if delta <= 0:
+                mailing(row_msg[0][1], row_msg[0][2], db=db)
+                db.delete_message_for_it_id(row_msg[0][0])
+
 
 def send_text(id, text, keyboard=None):
     post = {'user_id': id,
@@ -17,7 +37,10 @@ def send_text(id, text, keyboard=None):
         post['keyboard'] = keyboard
     # print(keyboard)
     VK_SESSION.method('messages.send', post)
-    
+
+x = threading.Thread(target=monitor_delay_messages)
+x.start()
+
 for event in LONGPOLL.listen():
     try:
         if event.type == VkBotEventType.MESSAGE_NEW:

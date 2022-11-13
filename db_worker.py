@@ -51,15 +51,17 @@ class message:
     media_attachments: str
     audio_path: str
     id_admin: int
+    send_time: str
     table_name = 'message'
 
     def __init__(self) -> None:
         self.text = "''"
         self.media_attachments = "''" 
         self.audio_path = "''"
+        self.send_time = "''"
 
     def get_query_create_table(self) -> str:
-        return f"""CREATE TABLE IF NOT EXISTS {self.table_name} (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,text VARCHAR (2000),media_attachments VARCHAR (2000), audio_path VARCHAR (255), id_admin INTEGER REFERENCES admin (id));"""
+        return f"""CREATE TABLE IF NOT EXISTS {self.table_name} (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,text VARCHAR (2000),media_attachments VARCHAR (2000), audio_path VARCHAR (255), id_admin INTEGER REFERENCES admin (id), send_time  DATETIME);"""
 
     def get_query_drop_table(self) -> str:
         return f"DROP TABLE IF EXISTS {self.table_name}"
@@ -76,9 +78,14 @@ class message:
     def get_query_update_attachments(self) -> str:
         return f"UPDATE {self.table_name} SET media_attachments = '{self.media_attachments}' where id = {self.id}"
 
-    def get_query_delete_last_message(self) -> str:
+    def get_query_delete_last_message_for_admin(self) -> str:
         return f"DELETE FROM {self.table_name} WHERE id = (select id from {self.table_name} where id_admin = {self.id_admin} and id <= (select seq from sqlite_sequence where name = '{self.table_name}') order by id DESC LIMIT 1)"
 
+    def get_query_delay_message(self) -> str:
+        return f"select * from {self.table_name} WHERE datetime(send_time) IS NOT NULL;"
+
+    def get_query_delete_for_id(self) -> str:
+        return f"DELETE FROM {self.table_name} WHERE id = {self.id}"
 class DBWorker:
 
     def update_state(self, id_admin, state):
@@ -188,10 +195,19 @@ class DBWorker:
         usr = user()
         return self.execute_query_select(usr.get_query_select_all_users())
 
-    def delete_message(self, id):
+    def delete_message_for_admin(self, id):
         msg = message()
         msg.id_admin = id
-        self.execute_query(msg.get_query_delete_last_message())
+        self.execute_query(msg.get_query_delete_last_message_for_admin())
 
+    def get_early_delay_message(self):
+        msg = message()
+        return self.execute_query_select(msg.get_query_delay_message())
+        
+    def delete_message_for_it_id(self, id):
+        msg = message()
+        msg.id = id
+        self.execute_query(msg.get_query_delete_for_id())
+        
 if __name__ == "__main__":
     db = DBWorker()

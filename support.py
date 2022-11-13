@@ -46,3 +46,11 @@ def gen_keyboard(labels, type_edits, vk_colors=None):
         if i != rows-1:
             keyboard.add_line()
     return keyboard.get_keyboard()
+
+def mailing(msg, attachments, db):
+    ids = db.get_all_users()
+    for id_users in ids:
+        if attachments != '':
+            send_media(id_users[0], attachments, msg)
+        else:
+            send_msg(id_users[0], msg=msg)
