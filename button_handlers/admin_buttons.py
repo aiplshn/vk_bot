@@ -200,3 +200,8 @@ def prev_show_delay_message(id, message_id):
         DB.update_id_show_delay_message(id, 0)
         return
     show_message(delay_message, id, message_id)
+
+
+def add_audio(id, message_id):
+    DB.update_state(id, States.S_SEND_AUDIO)
+    send_msg(id, 'Отправь голосовое', edit=True, message_id=message_id)

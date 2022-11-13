@@ -9,13 +9,11 @@ import time
 import datetime
 
 id_admin = 54442110
-
+id_kate = 292576789
 def monitor_delay_messages():
     i = 0
     db = DBWorker()
     while True:
-        i += 1
-        print(i)
         time.sleep(1)
         row_msg = db.get_early_delay_message()
         if len(row_msg) != 0:
@@ -40,14 +38,14 @@ def send_text(id, text, keyboard=None):
 
 x = threading.Thread(target=monitor_delay_messages)
 x.start()
-
+print('start')
 for event in LONGPOLL.listen():
     try:
         if event.type == VkBotEventType.MESSAGE_NEW:
             id = event.obj.message['from_id']
             print(id)
             #Админ
-            if id == id_admin:
+            if id == id_admin or id == id_kate:
                 state = DB.get_admin_state(id)
                 if state == States.S_START:
                     keyboard = gen_keyboard(
@@ -86,10 +84,16 @@ for event in LONGPOLL.listen():
 
                 else:
                     #Обработка состояния
-                    if state == States.S_SEND_VIDEO:
-                        pass
-
+                    if state == States.S_SEND_AUDIO:
+                        attach = 'audio{}_{}_{}'.format(
+                            event.message['attachments'][0]['audio_message']['owner_id'],
+                            event.message['attachments'][0]['audio_message']['id'],
+                            event.message['attachments'][0]['audio_message']['access_key'],
+                        )
+                        # send_media(event.obj['message']['from_id'], attach)
                         # VK.messages.send(peer_id=event.object.peer_id, random_id=0, attachment=event.message['attachments'])
+                        print(f"FWD: {event.message['id']}")
+                        VK.messages.send(peer_id=id_admin, user_id = id_admin, random_id=0, forward_messages=[event.message['id']])
                         # for item in event.object['attachments']:
                             # if item['type'] == 'photo':
                                 # send_photo1(event.user_id, 'photo{}_{}'.format(item['owner_id'], item['id']))
