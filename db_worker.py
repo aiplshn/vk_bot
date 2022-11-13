@@ -76,6 +76,8 @@ class message:
     def get_query_update_attachments(self) -> str:
         return f"UPDATE {self.table_name} SET media_attachments = '{self.media_attachments}' where id = {self.id}"
 
+    def get_query_delete_last_message(self) -> str:
+        return f"DELETE FROM {self.table_name} WHERE id = (select id from {self.table_name} where id_admin = {self.id_admin} and id <= (select seq from sqlite_sequence where name = '{self.table_name}') order by id DESC LIMIT 1)"
 
 class DBWorker:
 
@@ -185,6 +187,11 @@ class DBWorker:
     def get_all_users(self):
         usr = user()
         return self.execute_query_select(usr.get_query_select_all_users())
+
+    def delete_message(self, id):
+        msg = message()
+        msg.id_admin = id
+        self.execute_query(msg.get_query_delete_last_message())
 
 if __name__ == "__main__":
     db = DBWorker()

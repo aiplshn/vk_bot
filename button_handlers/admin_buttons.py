@@ -92,9 +92,11 @@ def send_now(id, message_id):
     attach = DB.get_last_attachments(id)
     msg = DB.get_last_message(id)
     ids = DB.get_all_users()
-    for id in ids:
+    for id_users in ids:
         if attach != '':
-            send_media(id[0], attach, msg)
+            send_media(id_users[0], attach, msg)
         else:
-            send_msg(id[0], msg=msg)
+            send_msg(id_users[0], msg=msg)
     send_msg(id, 'Готово!')
+    DB.update_state(id, States.S_START)
+    DB.delete_message(id)

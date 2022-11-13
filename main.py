@@ -87,7 +87,7 @@ for event in LONGPOLL.listen():
             #TODO add try catch
             print(event.object.payload.get('type'))
             print(event.obj['user_id'])
-            getattr(bh, event.object.payload.get('type'))(event.obj['user_id'], event.obj.conversation_message_id)
+            getattr(bh, event.object.payload.get('type'))(int(event.obj['user_id']), event.obj.conversation_message_id)
 
     except:
         break
