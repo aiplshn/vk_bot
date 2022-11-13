@@ -57,4 +57,4 @@ def save_photo(id, attachments):
     msg = DB.get_message(id)
     keyboard = get_keyboard_edit_message()
     send_photo1(id, attachments, msg, keyboard)
-    # DB.save_photo()
+    DB.save_photo(id, attachments)

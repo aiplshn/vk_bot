@@ -43,7 +43,7 @@ class user:
         return f"DELETE FROM {self.table_name}"
 
 class message:
-    # id: int
+    id: int
     text: str
     media_attachments: str
     audio_path: str
@@ -67,9 +67,11 @@ class message:
     def get_query_delete_all(self) -> str:
         return f"DELETE FROM {self.table_name}"
 
-    def get_query_last_text(self) -> str:
-        return f"select text from {self.table_name} where id_admin = {self.id_admin} and id <= (select seq from sqlite_sequence where name = '{self.table_name}') order by id DESC LIMIT 1"
+    def get_query_last_message(self) -> str:
+        return f"select * from {self.table_name} where id_admin = {self.id_admin} and id <= (select seq from sqlite_sequence where name = '{self.table_name}') order by id DESC LIMIT 1"
 
+    def get_query_update_attachments(self) -> str:
+        return f"UPDATE {self.table_name} SET media_attachments = '{self.media_attachments}' where id = {self.id}"
 
 
 class DBWorker:
@@ -152,7 +154,22 @@ class DBWorker:
     def get_message(self, id) -> str:
         msg = message()
         msg.id_admin = id
-        text = self.execute_query_select(msg.get_query_last_text())
-        return text[0][0]
+        last_msg = self.execute_query_select(msg.get_query_last_message())
+        return last_msg[0][1]
+
+    def save_photo(self, id, attachments):
+        msg = message()
+        msg.id_admin = id
+        last_msg = self.execute_query_select(msg.get_query_last_message())
+        last_attachment = last_msg[0][2]
+        id_msg = last_msg[0][0]
+        msg.id = id_msg
+        if last_attachment != '':
+            msg.media_attachments = last_attachment + "," + attachments
+        else:
+            msg.media_attachments = attachments
+        self.execute_query(msg.get_query_update_attachments())
+
+
 if __name__ == "__main__":
     db = DBWorker()
