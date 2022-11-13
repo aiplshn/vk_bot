@@ -47,7 +47,7 @@ def collect_attachments(event, media_type) -> str:
     return attachments
 
 def save_media(id, attachments):
-    msg = DB.get_message(id)
+    msg = DB.get_last_message(id)
     keyboard = get_keyboard_edit_message()
     attach_new = DB.save_media(id, attachments)
     send_media(id, attach_new, msg, keyboard)

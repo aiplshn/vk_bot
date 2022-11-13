@@ -67,3 +67,34 @@ def send_without_text(id, message_id):
                     peer_id=id,
                     conversation_message_id = message_id,
                     message='Выбери действие:')
+
+
+def apply_edit_msg(id, message_id):
+    attach = DB.get_last_attachments(id)
+    msg = DB.get_last_message(id)
+    if msg == '' and attach == '':
+        send_msg(id, 'Ничего не добавлено!')
+        return
+    
+    keyboard = gen_keyboard(['Отправить сейчас',
+                             'Отложить',
+                             'Назад'],
+                            ['send_now',
+                             'delay_message',
+                             'back_send_to_edit'])
+
+
+    send_msg(id, 'Принято. Выберите дальнейшее действие:',keyboard=keyboard)
+
+
+def send_now(id, message_id):
+    send_msg(id, 'Ожидай...', edit=True, message_id=message_id)
+    attach = DB.get_last_attachments(id)
+    msg = DB.get_last_message(id)
+    ids = DB.get_all_users()
+    for id in ids:
+        if attach != '':
+            send_media(id[0], attach, msg)
+        else:
+            send_msg(id[0], msg=msg)
+    send_msg(id, 'Готово!')

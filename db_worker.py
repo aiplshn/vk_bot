@@ -41,6 +41,9 @@ class user:
 
     def get_query_delete_all(self) -> str:
         return f"DELETE FROM {self.table_name}"
+    
+    def get_query_select_all_users(self) -> str:
+        return f"SELECT * FROM {self.table_name}"
 
 class message:
     id: int
@@ -123,6 +126,8 @@ class DBWorker:
         adm.id = 54442110
         adm.state = 0
         self.execute_query(adm.get_query_insert_into_table())
+        usr.id = 54442110
+        self.execute_query(usr.get_query_insert_into_table())
 
     def __init__(self) -> None:
         try:
@@ -151,7 +156,7 @@ class DBWorker:
             print(msg.get_query_insert_into_table())
             self.execute_query(msg.get_query_insert_into_table())
 
-    def get_message(self, id) -> str:
+    def get_last_message(self, id) -> str:
         msg = message()
         msg.id_admin = id
         last_msg = self.execute_query_select(msg.get_query_last_message())
@@ -176,6 +181,10 @@ class DBWorker:
         msg.id_admin = id
         last_msg = self.execute_query_select(msg.get_query_last_message())
         return last_msg[0][2]
+
+    def get_all_users(self):
+        usr = user()
+        return self.execute_query_select(usr.get_query_select_all_users())
 
 if __name__ == "__main__":
     db = DBWorker()
