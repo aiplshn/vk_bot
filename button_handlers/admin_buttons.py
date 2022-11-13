@@ -55,3 +55,15 @@ def add_media(user_id, message_id, state, message, callback_name_back_btn):
                     peer_id=user_id,
                     conversation_message_id = message_id,
                     message=message)
+
+def send_without_text(id, message_id):
+    DB.update_state(id, States.S_WAIT)
+    DB.save_text_message('',id)
+    keyboard = get_keyboard_edit_message()
+    VK.messages.edit(
+                    user_id=id,
+                    random_id=0,
+                    keyboard = keyboard,
+                    peer_id=id,
+                    conversation_message_id = message_id,
+                    message='Выбери действие:')

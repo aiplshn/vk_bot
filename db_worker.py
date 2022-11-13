@@ -171,6 +171,11 @@ class DBWorker:
         self.execute_query(msg.get_query_update_attachments())
         return msg.media_attachments
 
+    def get_last_attachments(self, id):
+        msg = message()
+        msg.id_admin = id
+        last_msg = self.execute_query_select(msg.get_query_last_message())
+        return last_msg[0][2]
 
 if __name__ == "__main__":
     db = DBWorker()

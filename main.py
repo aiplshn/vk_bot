@@ -18,23 +18,6 @@ def send_text(id, text, keyboard=None):
     # print(keyboard)
     VK_SESSION.method('messages.send', post)
     
-# VK.messages.send(peer_id=event.object.peer_id, random_id=0, attachment=event.message['attachments'])
-
-
-def send_photo(user_id):
-    a = VK_SESSION.method("photos.getMessagesUploadServer")
-    b = requests.post(a['upload_url'], files={'photo': open('E:\Programs\Projects\Channels\golden_monday\posts\бизнес в it.png', 'rb')}).json()
-    c = VK_SESSION.method('photos.saveMessagesPhoto', {'photo': b['photo'], 'server': b['server'], 'hash': b['hash']})[0]
-    VK_SESSION.method("messages.send", {"peer_id": user_id, "message": "Фотка", "attachment": f'photo{c["owner_id"]}_{c["id"]}', 'random_id': 0})
- 
-def send_video(user_id):
-    a = VK_SESSION.method("video.save", {"name": "NAME VIDEO", "description": "DESCRIPT VIDEO"})
-    b = requests.post(a['upload_url'], files={'video_file': open('E:\Файлы\Dropbox\YDXJ0078.MP4', 'rb')}).json()
-    # c = VK_SESSION.method('photos.saveMessagesPhoto', {'photo': b['photo'], 'server': b['server'], 'hash': b['hash']})[0]
-    c = "video{}_{}".format(b["owner_id"], b["video_id"])
-    VK_SESSION.method("messages.send", {"peer_id": user_id, "message": "Video", "attachment": c, 'random_id': 0})
- 
-
 for event in LONGPOLL.listen():
     try:
         if event.type == VkBotEventType.MESSAGE_NEW:
@@ -77,10 +60,7 @@ for event in LONGPOLL.listen():
                     if msg == 'p' or msg == 'п':
                         send_text(id, 'hello')
                         send_text(id, f"{id}")
-                    if msg == 'f' or msg == 'ф':
-                        send_photo(id)
-                    if msg == 'v' or msg == 'в':
-                        send_video(id)
+
                 else:
                     #Обработка состояния
                     if state == States.S_SEND_VIDEO:

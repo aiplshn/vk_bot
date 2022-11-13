@@ -17,28 +17,19 @@ def processing_state(event, user_id, state):
         pass
     elif state == States.S_START_ADD_ADMIN:
         pass
+    elif state == States.S_WAIT:
+        click_on_btn(user_id)
 
-def get_keyboard_edit_message():
-    return gen_keyboard([
-                        'Добавить фото',
-                        'Добавить видео',
-                        'Добавить аудио',
-                        'Назад'],
-                        [
-                        'add_photo',
-                        'add_video',
-                        'add_audio',
-                        'back_messages'])
-
-def save_text(msg, user_id):
+def save_text(msg, id):
     keyboard = get_keyboard_edit_message()
     VK.messages.send(
-                    user_id=user_id,
+                    user_id=id,
                     random_id=0,
                     keyboard = keyboard,
-                    peer_id=user_id,
+                    peer_id=id,
                     message=msg)
-    DB.save_text_message(msg, user_id)
+    DB.save_text_message(msg, id)
+    DB.update_state(id, States.S_WAIT)
 
 
 def collect_attachments(event, media_type) -> str:
@@ -60,9 +51,11 @@ def save_media(id, attachments):
     keyboard = get_keyboard_edit_message()
     attach_new = DB.save_media(id, attachments)
     send_media(id, attach_new, msg, keyboard)
-    
+    DB.update_state(id, States.S_WAIT)
 
-# def save_video(id, attachments):
-    # msg = DB.get_message(id)
+def click_on_btn(id):
+    send_msg(id, 'Выбери действие')
     # keyboard = get_keyboard_edit_message()
-    # send_photo1()
+    # msg = DB.get_message(id)
+    # attach = DB.get_last_attachments(id)
+    # send_media(id, attach, msg, keyboard)

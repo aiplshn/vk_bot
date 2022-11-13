@@ -6,3 +6,4 @@ class States():
     S_SEND_AUDIO = 4 # отправка аудио
     S_START_ADD_ADMIN = 5 # добавление админа
     S_SHOW_DELAY = 6 # показать отложенные
+    S_WAIT = 7 # ждем нажатия на кнопку

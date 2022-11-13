@@ -7,6 +7,21 @@ def send_media(peer_id, attachments, msg='',keyboard = None, random_id=0,):
     else:
         VK.messages.send(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, keyboard=keyboard)
 
+def send_msg(peer_id, msg, random_id=0):
+    VK.messages.send(peer_id=peer_id, message=msg, random_id=random_id)
+
+def get_keyboard_edit_message():
+    return gen_keyboard([
+                        'Добавить фото',
+                        'Добавить видео',
+                        'Добавить аудио',
+                        'Назад'],
+                        [
+                        'add_photo',
+                        'add_video',
+                        'add_audio',
+                        'back_messages'])
+
 def gen_keyboard(labels, type_edits, vk_colors=None,):
     rows = len(labels)
     if rows < 1 or rows != len(type_edits):
