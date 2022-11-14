@@ -70,7 +70,8 @@ def send_without_text(id, message_id):
 def apply_edit_msg(id, message_id):
     attach = DB.get_last_attachments(id)
     msg = DB.get_last_message(id)
-    if msg == '' and attach == '':
+    forward_message = DB.get_id_forward_message(id)
+    if msg == '' and attach == '' and forward_message == '':
         send_msg(id, 'Ничего не добавлено!')
         return
     
@@ -89,7 +90,8 @@ def send_now(id, message_id):
     send_msg(id, 'Ожидай...', edit=True, message_id=message_id)
     attach = DB.get_last_attachments(id)
     msg = DB.get_last_message(id)
-    mailing(msg, attachments=attach, db=DB)
+    fwd_msg = DB.get_id_forward_message(id)
+    mailing(msg, attachments=attach,forward_message=fwd_msg, db=DB)
     send_msg(id, 'Готово!')
     DB.update_state(id, States.S_START)
     DB.delete_message_for_admin(id)
@@ -123,10 +125,12 @@ def show_message(delay_message, id, message_id, edit=True):
                               'back_to_start'])
     dt = datetime.datetime.strptime(delay_message[5], "%Y-%m-%d %H:%M:%S")
     info = f"Дата и время рассылки: {dt.day}.{dt.month}.{dt.year} {dt.hour}:{dt.minute}\n----------\n"+delay_message[1]
-    if delay_message[2] != None:
-        send_media(id, delay_message[2], info, keyboard, edit=edit, message_id=message_id)
+    if delay_message[3] != '':
+        edit = False
+    if delay_message[2] != '':
+        send_media(id, delay_message[2], info, keyboard, edit=edit, message_id=message_id, forward_message=str(delay_message[3]))
     else:
-        send_msg(id, info, keyboard, edit=edit, message_id=message_id)
+        send_msg(id, info, keyboard, edit=edit, message_id=message_id, forward_message=str(delay_message[3]))
     DB.update_id_show_delay_message(id, delay_message[0])
 
 
@@ -137,7 +141,7 @@ def show_delays_messages(id, message_id):
                                  ['back_to_start'])
         send_msg(id, 'Нет отложенных сообщений', keyboard=keyboard1, edit=True, message_id=message_id)
         return
-    DB.update_state(id, States.S_SHOW_DELAY)
+    DB.update_state(id, States.S_WAIT)
     show_message(delay_message, id, message_id)
     
 

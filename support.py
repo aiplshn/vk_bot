@@ -2,29 +2,29 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from globals import *
 import datetime
 
-def send_media(peer_id, attachments, msg='',keyboard = None, random_id=0, edit = False, message_id = 0):
+def send_media(peer_id, attachments, msg='',keyboard = None, random_id=0, edit = False, message_id = 0, forward_message=''):
     if keyboard == None:
         if edit:
-            VK.messages.edit(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, conversation_message_id = message_id)
+            VK.messages.edit(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, conversation_message_id = message_id, forward_messages=forward_message)
         else:
-            VK.messages.send(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id)
+            VK.messages.send(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, forward_messages=forward_message)
     else:
         if edit:
-            VK.messages.edit(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, keyboard=keyboard, conversation_message_id = message_id)
+            VK.messages.edit(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, keyboard=keyboard, conversation_message_id = message_id, forward_messages=forward_message)
         else:
-            VK.messages.send(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, keyboard=keyboard)
+            VK.messages.send(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, keyboard=keyboard, forward_messages=forward_message)
 
-def send_msg(peer_id, msg, keyboard = None, edit = False, message_id = 0, random_id=0, ):
+def send_msg(peer_id, msg, keyboard = None, edit = False, message_id = 0, random_id=0, forward_message=''):
     if keyboard == None:
         if edit:
-            VK.messages.edit(peer_id=peer_id, message=msg, random_id=random_id, conversation_message_id = message_id)
+            VK.messages.edit(peer_id=peer_id, message=msg, random_id=random_id, conversation_message_id = message_id, forward_messages=forward_message)
         else:
-            VK.messages.send(peer_id=peer_id, message=msg, random_id=random_id)
+            VK.messages.send(peer_id=peer_id, message=msg, random_id=random_id, forward_messages=forward_message)
     else:
         if edit:
-            VK.messages.edit(peer_id=peer_id, message=msg, keyboard=keyboard, random_id=random_id, conversation_message_id = message_id)
+            VK.messages.edit(peer_id=peer_id, message=msg, keyboard=keyboard, random_id=random_id, conversation_message_id = message_id, forward_messages=forward_message)
         else:    
-            VK.messages.send(peer_id=peer_id, message=msg, keyboard=keyboard, random_id=random_id)
+            VK.messages.send(peer_id=peer_id, message=msg, keyboard=keyboard, random_id=random_id, forward_messages=forward_message)
 
 def get_keyboard_edit_message():
     return gen_keyboard([
@@ -54,13 +54,13 @@ def gen_keyboard(labels, type_edits, vk_colors=None):
             keyboard.add_line()
     return keyboard.get_keyboard()
 
-def mailing(msg, attachments, db):
+def mailing(msg, attachments, forward_message, db):
     ids = db.get_all_users()
     for id_users in ids:
         if attachments != '':
-            send_media(id_users[0], attachments, msg)
+            send_media(id_users[0], attachments, msg, forward_message=forward_message)
         else:
-            send_msg(id_users[0], msg=msg)
+            send_msg(id_users[0], msg=msg, forward_message=forward_message)
 
 def check_format_datetime(dt: str):
     try:

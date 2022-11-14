@@ -13,9 +13,9 @@ def processing_state(event, user_id, state):
         #TODO проверка на видео
         save_media(user_id, collect_attachments(event, 'video'))
     elif state == States.S_SEND_AUDIO:
-        pass
-    elif state == States.S_SHOW_DELAY:
-        pass
+        save_voise_message(user_id, event.message['id'])
+    # elif state == States.S_SHOW_DELAY:
+        # pass
     elif state == States.S_START_ADD_ADMIN:
         pass
     elif state == States.S_DATE_TIME:
@@ -102,3 +102,11 @@ def save_time(id, time_str, day_delay, show = False): #day_delay 0 - сегод�
         send_msg(id, 'Готово')
     else:
         send_msg(id, "Неверный формат. Введите в формате 'ЧЧ:мм'.")
+
+
+def save_voise_message(id, id_message):
+    DB.update_audio_message(id, id_message)
+    attach = DB.get_last_attachments(id)
+    msg = DB.get_last_message(id)
+    keyboard = get_keyboard_edit_message()
+    send_media(id, attach, msg, keyboard, forward_message=str(id_message))

@@ -22,7 +22,7 @@ def monitor_delay_messages():
             delta = (date_time_msg - date_time_now).total_seconds()
             print(delta)
             if delta <= 0:
-                mailing(row_msg[0][1], row_msg[0][2], db=db)
+                mailing(row_msg[0][1], row_msg[0][2], row_msg[0][3], db=db)
                 db.delete_message_for_it_id(row_msg[0][0])
 
 
@@ -93,7 +93,7 @@ for event in LONGPOLL.listen():
                         # send_media(event.obj['message']['from_id'], attach)
                         # VK.messages.send(peer_id=event.object.peer_id, random_id=0, attachment=event.message['attachments'])
                         print(f"FWD: {event.message['id']}")
-                        VK.messages.send(peer_id=id_admin, user_id = id_admin, random_id=0, forward_messages=[event.message['id']])
+                        # VK.messages.send(peer_id=id_admin, user_id = id_admin, random_id=0, forward_messages=[event.message['id']])
                         # for item in event.object['attachments']:
                             # if item['type'] == 'photo':
                                 # send_photo1(event.user_id, 'photo{}_{}'.format(item['owner_id'], item['id']))

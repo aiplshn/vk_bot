@@ -57,7 +57,7 @@ class message:
     id: int
     text: str
     media_attachments: str
-    audio_path: str
+    id_audio_message_str: str
     id_admin: int
     send_time: str
     table_name = 'message'
@@ -65,17 +65,17 @@ class message:
     def __init__(self) -> None:
         self.text = "''"
         self.media_attachments = "''" 
-        self.audio_path = "''"
+        self.id_audio_message_str = "''"
         self.send_time = "''"
 
     def get_query_create_table(self) -> str:
-        return f"""CREATE TABLE IF NOT EXISTS {self.table_name} (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,text VARCHAR (2000),media_attachments VARCHAR (2000), audio_path VARCHAR (255), id_admin INTEGER REFERENCES admin (id), send_time  DATETIME);"""
+        return f"""CREATE TABLE IF NOT EXISTS {self.table_name} (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,text VARCHAR (2000),media_attachments VARCHAR (2000), id_audio_message_str VARCHAR (255), id_admin INTEGER REFERENCES admin (id), send_time  DATETIME);"""
 
     def get_query_drop_table(self) -> str:
         return f"DROP TABLE IF EXISTS {self.table_name}"
 
     def get_query_insert_into_table(self) -> str:
-        return f"""INSERT INTO {self.table_name} (text, media_attachments, audio_path, id_admin) VALUES ({self.text}, {self.media_attachments}, {self.audio_path}, {self.id_admin})"""
+        return f"""INSERT INTO {self.table_name} (text, media_attachments, id_audio_message_str, id_admin) VALUES ({self.text}, {self.media_attachments}, {self.id_audio_message_str}, {self.id_admin})"""
 
     def get_query_delete_all(self) -> str:
         return f"DELETE FROM {self.table_name}"
@@ -103,6 +103,9 @@ class message:
 
     def get_query_set_datetime_for_id(self) -> str:
         return f"UPDATE {self.table_name} SET send_time = '{self.send_time}' WHERE id = {self.id};"
+    
+    def get_query_update_id_voise_message(self) -> str:
+        return f"UPDATE {self.table_name} SET id_audio_message_str = '{self.id_audio_message_str}' WHERE id = {self.id}"
 
 class DBWorker:
 
@@ -282,6 +285,18 @@ class DBWorker:
         adm = admin()
         adm.id = id
         return self.execute_query_select(adm.get_query_id_show_message())
+
+    def update_audio_message(self, id, id_voise_message):
+        msg = message()
+        msg.id_admin = id
+        msg.id = self.execute_query_select(msg.get_query_last_message())[0][0]
+        msg.id_audio_message_str = id_voise_message
+        self.execute_query(msg.get_query_update_id_voise_message())
+
+    def get_id_forward_message(self, id):
+        msg = message()
+        msg.id_admin = id
+        return self.execute_query_select(msg.get_query_last_message())[0][3]
 
 if __name__ == "__main__":
     db = DBWorker()
