@@ -1,5 +1,6 @@
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from globals import *
+import datetime
 
 def send_media(peer_id, attachments, msg='',keyboard = None, random_id=0, edit = False, message_id = 0):
     if keyboard == None:
@@ -60,3 +61,82 @@ def mailing(msg, attachments, db):
             send_media(id_users[0], attachments, msg)
         else:
             send_msg(id_users[0], msg=msg)
+
+def check_format_datetime(dt: str):
+    try:
+        date_time_msg = datetime.datetime.strptime(dt, "%d.%m.%Y %H:%M")
+        return date_time_msg
+    except:
+        return None
+
+def delay_message_set_datetime(id, message_id, show=False):
+    suffix = ''
+    if show:
+        suffix = '_for_show'
+    keyboard = gen_keyboard(['*Ввод даты',
+                             'Сегодня',
+                             'Завтра',
+                             'Послезавтра',
+                             'Назад'],
+                            ['delay_message'+suffix,
+                             'delay_today'+suffix,
+                             'delay_tomorrow'+suffix,
+                             'delay_day_after'+suffix,
+                             'back_delay'+suffix])
+    send_msg(id,
+             "Выберите когда отправить или введите дату и время в формате 'ДД.ММ.ГГГГ ЧЧ:мм'.",
+             keyboard=keyboard, edit=True, message_id=message_id)
+
+def delay_message_set_time_today(id, message_id, show=False):
+    suffix = ''
+    if show:
+        suffix = '_for_show'
+    keyboard = gen_keyboard(['Ввод даты',
+                             '*Сегодня',
+                             'Завтра',
+                             'Послезавтра',
+                             'Назад'],
+                            ['delay_message'+suffix,
+                             'delay_today'+suffix,
+                             'delay_tomorrow'+suffix,
+                             'delay_day_after'+suffix,
+                             'back_delay'+suffix])
+    send_msg(id,
+             "Введите время в формате 'ЧЧ:мм'.",
+             keyboard=keyboard, edit=True, message_id=message_id)
+
+def delay_message_set_time_tomorrow(id, message_id, show=False):
+    suffix = ''
+    if show:
+        suffix = '_for_show'
+    keyboard = gen_keyboard(['Ввод даты',
+                             'Сегодня',
+                             '*Завтра',
+                             'Послезавтра',
+                             'Назад'],
+                            ['delay_message'+suffix,
+                             'delay_today'+suffix,
+                             'delay_tomorrow'+suffix,
+                             'delay_day_after'+suffix,
+                             'back_delay'+suffix])
+    send_msg(id,
+             "Введите время в формате 'ЧЧ:мм'.",
+             keyboard=keyboard, edit=True, message_id=message_id)
+
+def delay_message_set_time_day_after(id, message_id, show=False):
+    suffix = ''
+    if show:
+        suffix = '_for_show'
+    keyboard = gen_keyboard(['Ввод даты',
+                             'Сегодня',
+                             'Завтра',
+                             '*Послезавтра',
+                             'Назад'],
+                            ['delay_message'+suffix,
+                             'delay_today'+suffix,
+                             'delay_tomorrow'+suffix,
+                             'delay_day_after'+suffix,
+                             'back_delay'+suffix])
+    send_msg(id,
+             "Введите время в формате 'ЧЧ:мм'.",
+             keyboard=keyboard, edit=True, message_id=message_id)

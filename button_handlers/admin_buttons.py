@@ -95,74 +95,38 @@ def send_now(id, message_id):
     DB.delete_message_for_admin(id)
 
 def delay_message(id, message_id):
-    keyboard = gen_keyboard(['Сегодня',
-                             'Завтра',
-                             'Послезавтра',
-                             'Назад'],
-                            ['delay_today',
-                             'delay_tomorrow',
-                             'delay_day_after',
-                             'back_delay'])
-    send_msg(id,
-             "Выберите когда отправить или введите дату и время в формате 'ДД.ММ.ГГГГ ЧЧ:мм'.",
-             keyboard=keyboard, edit=True, message_id=message_id)
+    delay_message_set_datetime(id, message_id)
     DB.update_state(id, States.S_DATE_TIME)
 
 def delay_today(id, message_id):
-    keyboard = gen_keyboard(['*Сегодня',
-                             'Завтра',
-                             'Послезавтра',
-                             'Назад'],
-                            ['delay_today',
-                             'delay_tomorrow',
-                             'delay_day_after',
-                             'back_delay'])
-    send_msg(id,
-             "Введите время в формате 'ЧЧ:мм'.",
-             keyboard=keyboard, edit=True, message_id=message_id)
+    delay_message_set_time_today(id, message_id)
     DB.update_state(id, States.S_TIME_TODAY)
 
 def delay_tomorrow(id, message_id):
-    keyboard = gen_keyboard(['Сегодня',
-                             '*Завтра',
-                             'Послезавтра',
-                             'Назад'],
-                            ['delay_today',
-                             'delay_tomorrow',
-                             'delay_day_after',
-                             'back_delay'])
-    send_msg(id,
-             "Введите время в формате 'ЧЧ:мм'.",
-             keyboard=keyboard, edit=True, message_id=message_id)
+    delay_message_set_time_tomorrow(id, message_id)
     DB.update_state(id, States.S_TIME_TOMORROW)
 
 def delay_day_after(id, message_id):
-    keyboard = gen_keyboard(['Сегодня',
-                             'Завтра',
-                             '*Послезавтра',
-                             'Назад'],
-                            ['delay_today',
-                             'delay_tomorrow',
-                             'delay_day_after',
-                             'back_delay'])
-    send_msg(id,
-             "Введите время в формате 'ЧЧ:мм'.",
-             keyboard=keyboard, edit=True, message_id=message_id)
+    delay_message_set_time_day_after(id, message_id)
     DB.update_state(id, States.S_TIME_AFTER_TOMORROW)
 
-def show_message(delay_message, id, message_id):
+def show_message(delay_message, id, message_id, edit=True):
     keyboard = gen_keyboard(['Следующее',
                               'Предыдущее',
+                              'Изменить время',
+                              'Удалить сообщение',
                               'Назад'],
                              ['next_show_delay_message',
                               'prev_show_delay_message',
+                              'delay_message_for_show',
+                              'delete_delay_message',
                               'back_to_start'])
     dt = datetime.datetime.strptime(delay_message[5], "%Y-%m-%d %H:%M:%S")
     info = f"Дата и время рассылки: {dt.day}.{dt.month}.{dt.year} {dt.hour}:{dt.minute}\n----------\n"+delay_message[1]
     if delay_message[2] != None:
-        send_media(id, delay_message[2], info, keyboard, edit=True, message_id=message_id)
+        send_media(id, delay_message[2], info, keyboard, edit=edit, message_id=message_id)
     else:
-        send_msg(id, info, keyboard, edit=True, message_id=message_id)
+        send_msg(id, info, keyboard, edit=edit, message_id=message_id)
     DB.update_id_show_delay_message(id, delay_message[0])
 
 
@@ -205,3 +169,23 @@ def prev_show_delay_message(id, message_id):
 def add_audio(id, message_id):
     DB.update_state(id, States.S_SEND_AUDIO)
     send_msg(id, 'Отправь голосовое', edit=True, message_id=message_id)
+
+def delay_message_for_show(id, message_id):
+    DB.update_state(id, States.S_DATE_TIME_DELAY)
+    delay_message_set_datetime(id, message_id, True)
+
+def delay_message_for_show(id, message_id):
+    delay_message_set_datetime(id, message_id, True)
+    DB.update_state(id, States.S_DATE_TIME_DELAY)
+
+def delay_today_for_show(id, message_id):
+    delay_message_set_time_today(id, message_id, True)
+    DB.update_state(id, States.S_TIME_TODAY_DELAY)
+
+def delay_tomorrow_for_show(id, message_id):
+    delay_message_set_time_tomorrow(id, message_id, True)
+    DB.update_state(id, States.S_TIME_TOMORROW_DELAY)
+
+def delay_day_after_for_show(id, message_id):
+    delay_message_set_time_day_after(id, message_id, True)
+    DB.update_state(id, States.S_TIME_AFTER_TOMORROW_DELAY)

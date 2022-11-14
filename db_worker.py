@@ -101,6 +101,9 @@ class message:
     def get_query_all_delay_messages(self) -> str:
         return f"SELECT * FROM {self.table_name} WHERE datetime(send_time) IS NOT NULL ORDER BY send_time ASC"
 
+    def get_query_set_datetime_for_id(self) -> str:
+        return f"UPDATE {self.table_name} SET send_time = '{self.send_time}' WHERE id = {self.id};"
+
 class DBWorker:
 
     def update_state(self, id_admin, state):
@@ -224,11 +227,18 @@ class DBWorker:
         msg.id = id
         self.execute_query(msg.get_query_delete_for_id())
 
-    def update_datetime_message(self, id: int, send_time: str):
+    def update_datetime_message_edit(self, id: int, send_time: str):
         msg = message()
         msg.id_admin = id
         msg.send_time = send_time
         self.execute_query(msg.get_query_set_datetime_last_message())
+
+    def update_datetime_message(self, id_admin: int, send_time: str):
+        id_message = self.get_id_show_delay_message(id_admin)[0][0]
+        msg = message()
+        msg.id = id_message
+        msg.send_time = send_time
+        self.execute_query(msg.get_query_set_datetime_for_id())
 
     def get_next_delay_message(self, id):
         adm = admin()

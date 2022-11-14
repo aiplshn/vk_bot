@@ -19,15 +19,22 @@ def processing_state(event, user_id, state):
     elif state == States.S_START_ADD_ADMIN:
         pass
     elif state == States.S_DATE_TIME:
-        #TODO проверить формат
         save_date_time(user_id, event.obj.message['text'])
-        pass
     elif state == States.S_TIME_TODAY:
         save_time(user_id, event.obj.message['text'], 0)
     elif state == States.S_TIME_TOMORROW:
         save_time(user_id, event.obj.message['text'], 1)
     elif state == States.S_TIME_AFTER_TOMORROW:
         save_time(user_id, event.obj.message['text'], 2)
+
+    elif state == States.S_DATE_TIME_DELAY:
+        save_date_time(user_id, event.obj.message['text'], True)
+    elif state == States.S_TIME_TODAY_DELAY:
+        save_time(user_id, event.obj.message['text'], 0, True)
+    elif state == States.S_TIME_TOMORROW_DELAY:
+        save_time(user_id, event.obj.message['text'], 1, True)
+    elif state == States.S_TIME_AFTER_TOMORROW_DELAY:
+        save_time(user_id, event.obj.message['text'], 2, True)
     elif state == States.S_WAIT:
         click_on_btn(user_id)
 
@@ -66,28 +73,32 @@ def save_media(id, attachments):
 
 def click_on_btn(id):
     send_msg(id, 'Выбери действие')
-    # keyboard = get_keyboard_edit_message()
-    # msg = DB.get_message(id)
-    # attach = DB.get_last_attachments(id)
-    # send_media(id, attach, msg, keyboard)
 
-def save_date_time(id, datetime_str):
-    try:
-        date_time_msg = datetime.datetime.strptime(datetime_str,"%d.%m.%Y %H:%M")
-        DB.update_datetime_message(id,str(date_time_msg))
-        send_msg(id, 'Готово')
+def save_date_time(id, datetime_str, show = False):
+    date_time_msg = check_format_datetime(datetime_str)
+    if date_time_msg != None:
+        if show:
+            DB.update_datetime_message(id, str(date_time_msg))
+            DB.update_id_show_delay_message(id, 0)
+        else:
+            DB.update_datetime_message_edit(id,str(date_time_msg))
         DB.update_state(id, States.S_START)
-    except:
+        send_msg(id, 'Готово')
+    else:
         send_msg(id, "Неверный формат. Введите в формате 'ДД.ММ.ГГГГ ЧЧ:мм'.")
 
-def save_time(id, time_str, day_delay): #day_delay 0 - сегодня 1 - завтра 2 - послезавтра
-    try:
-        date_delay = datetime.datetime.now()
-        date_delay = date_delay + datetime.timedelta(days=day_delay)
-        datetime_str = f"{date_delay.day}.{date_delay.month}.{date_delay.year} " + time_str
-        date_time_msg = datetime.datetime.strptime(datetime_str,"%d.%m.%Y %H:%M")
-        DB.update_datetime_message(id,str(date_time_msg))
-        send_msg(id, 'Готово')
+def save_time(id, time_str, day_delay, show = False): #day_delay 0 - сегодня 1 - завтра 2 - послезавтра
+    date_delay = datetime.datetime.now()
+    date_delay = date_delay + datetime.timedelta(days=day_delay)
+    datetime_str = f"{date_delay.day}.{date_delay.month}.{date_delay.year} " + time_str
+    date_time_msg = check_format_datetime(datetime_str)
+    if date_time_msg != None:
+        if show:
+            DB.update_datetime_message(id, str(date_time_msg))
+            DB.update_id_show_delay_message(id, 0)
+        else:
+            DB.update_datetime_message_edit(id,str(date_time_msg))
         DB.update_state(id, States.S_START)
-    except:
+        send_msg(id, 'Готово')
+    else:
         send_msg(id, "Неверный формат. Введите в формате 'ЧЧ:мм'.")
