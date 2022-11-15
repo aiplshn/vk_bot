@@ -38,7 +38,7 @@ def get_keyboard_edit_message():
                         'add_video',
                         'add_audio',
                         'apply_edit_msg',
-                        'back_messages'])
+                        'back_enter_message'])
 
 def gen_keyboard(labels, type_edits, vk_colors=None):
     rows = len(labels)
@@ -140,3 +140,15 @@ def delay_message_set_time_day_after(id, message_id, show=False):
     send_msg(id,
              "Введите время в формате 'ЧЧ:мм'.",
              keyboard=keyboard, edit=True, message_id=message_id)
+
+def send_start_message(id, edit = False, message_id=0):
+    keyboard = gen_keyboard(
+                        ['Создать сообщение для рассылки',
+                         'Посмотреть отложенные сообщения',
+                         'Админы'],
+                        ['create_messages',
+                         'show_delays_messages',
+                         'operations_admin'])
+    admin_start_message = "Привет, Админ. Что нужно сделать?"
+
+    send_msg(id, admin_start_message, keyboard, edit, message_id, 0)

@@ -19,25 +19,27 @@ def create_messages(user_id, message_id):
                                 'Назад'],
                                 [
                                 'send_without_text',
-                                'back_messages'])
+                                'back_to_start'])
         DB.update_state(user_id, States.S_SEND_TEXT)
-        VK.messages.edit(
-                        user_id=user_id,
-                        random_id=0,
-                        keyboard = keyboard,
-                        peer_id=user_id,
-                        conversation_message_id = message_id,
-                        message='Напиши любое текстовое сообщение без вложений')
-    #switch case state
-    #call func
+        send_msg(user_id, 'Напиши любое текстовое сообщение без вложений', keyboard, True, message_id, 0)
     print('created')
 
 def add_photo(user_id, message_id):
     add_media(user_id, message_id, States.S_SEND_PIC, 'Отправь одно или несколько фото', 'back_send_photo')
     print('photo added')
 
-def add_admin(user_id):
-    print('add admin')
+def operations_admin(id, message_id):
+    keyboard = gen_keyboard(['Добавить нового',
+                             'Удалить',
+                             'Назад'],
+                            ['add_new_admin',
+                             'delete_admin',
+                             'back_to_start'])
+    send_msg(id, 'Выбери действие', keyboard, edit=True, message_id=message_id)
+    # send_msg(id, 'Перешли любое сообщение от человека, которого нужно добавить в админы.',
+    #          keyboard, edit=True, message_id=message_id)
+    DB.update_state(id, States.S_WAIT)
+    print('operations admin')
 
 def add_video(user_id, message_id):
     add_media(user_id, message_id, States.S_SEND_VIDEO, 'Отправь одно или несколько видео', 'back_send_video')
@@ -83,7 +85,7 @@ def apply_edit_msg(id, message_id):
                              'back_send_to_edit'])
 
 
-    send_msg(id, 'Принято. Выберите дальнейшее действие:',keyboard=keyboard)
+    send_msg(id, 'Принято. Выберите дальнейшее действие:',keyboard=keyboard, edit=True, message_id=message_id)
 
 
 def send_now(id, message_id):
@@ -94,7 +96,7 @@ def send_now(id, message_id):
     mailing(msg, attachments=attach,forward_message=fwd_msg, db=DB)
     send_msg(id, 'Готово!')
     DB.update_state(id, States.S_START)
-    DB.delete_message_for_admin(id)
+    DB.delete_message_for_admin_edit(id)
 
 def delay_message(id, message_id):
     delay_message_set_datetime(id, message_id)
@@ -193,3 +195,54 @@ def delay_tomorrow_for_show(id, message_id):
 def delay_day_after_for_show(id, message_id):
     delay_message_set_time_day_after(id, message_id, True)
     DB.update_state(id, States.S_TIME_AFTER_TOMORROW_DELAY)
+
+def delete_delay_message(id, message_id):
+    DB.delete_message_for_admin_edit(id)
+    send_msg(id, 'Готово', edit=True, message_id=message_id)
+    DB.update_state(id, States.S_START)
+
+def back_to_start(id, message_id):
+    DB.update_state(id, States.S_START)
+    DB.update_id_show_delay_message(id, 0)
+    send_start_message(id, True, message_id)
+    
+def back_send_to_edit(id, message_id):
+    msg = DB.get_last_message(id)
+    keyboard = get_keyboard_edit_message()
+    attach_new = DB.get_last_attachments(id)
+    fwd_msg = DB.get_id_forward_message(id)
+    if fwd_msg == '':
+        send_media(id, attach_new, msg, keyboard, edit=True, message_id=message_id, forward_message=fwd_msg)
+    else:
+        send_media(id, attach_new, msg, keyboard, forward_message=fwd_msg)
+
+def back_enter_message(id, message_id):
+    DB.delete_message_for_admin_edit(id)
+    DB.update_state(id, States.S_START)
+    create_messages(id, message_id)
+
+def back_delay(id, message_id):
+    apply_edit_msg(id, message_id)
+
+def back_delay_for_show(id, message_id):
+    DB.update_id_show_delay_message(id, 0)
+    show_delays_messages(id, message_id)
+
+def add_new_admin(id, message_id):
+    DB.update_state(id, States.S_ADD_NEW_ADMIN)
+    keyboard = gen_keyboard(['Назад'],
+                            ['back_to_admin_operations'])
+    send_msg(id, 'Перешли любое сообщение от человека, которого нужно добавить в админы.',
+             keyboard=keyboard, edit=True, message_id=message_id)
+
+def delete_admin(id, message_id):
+    DB.update_state(id, States.S_DELETE_ADMIN)
+    keyboard = gen_keyboard(['Назад'],
+                            ['back_to_admin_operations'])
+    send_msg(id, 'Перешли любое сообщение от админа, которого нужно удалить.',
+             keyboard=keyboard, edit=True, message_id=message_id)
+
+
+def back_to_admin_operations(id, message_id):
+    DB.update_state(id, States.S_WAIT)
+    operations_admin(id, message_id)

@@ -48,24 +48,10 @@ for event in LONGPOLL.listen():
             if id == id_admin or id == id_kate:
                 state = DB.get_admin_state(id)
                 if state == States.S_START:
-                    keyboard = gen_keyboard(
-                        ['Создать сообщение для рассылки',
-                         'Посмотреть отложенные сообщения',
-                         'Добавить админа'],
-                        ['create_messages',
-                         'show_delays_messages',
-                         'add_admin'])
-                    admin_start_message = "Привет, Админ. Что нужно сделать?"
-                    VK.messages.send(
-                                user_id=event.obj.message['from_id'],
-                                random_id=0,
-                                keyboard = keyboard,
-                                peer_id=event.obj.message['from_id'],
-                                message=admin_start_message)
+                    send_start_message(event.obj.message['from_id'])
 
                     msg = event.obj.message['text']
-
-
+                    # id_new_admin = event.message['fwd_messages'][0]['from_id']
                     if msg == 's':
                         # keyboard = VkKeyboard(inline=True)
                         # keyboard.add_line()
@@ -84,15 +70,15 @@ for event in LONGPOLL.listen():
 
                 else:
                     #Обработка состояния
-                    if state == States.S_SEND_AUDIO:
-                        attach = 'audio{}_{}_{}'.format(
-                            event.message['attachments'][0]['audio_message']['owner_id'],
-                            event.message['attachments'][0]['audio_message']['id'],
-                            event.message['attachments'][0]['audio_message']['access_key'],
-                        )
+                    # if state == States.S_SEND_AUDIO:
+                        # attach = 'audio{}_{}_{}'.format(
+                        #     event.message['attachments'][0]['audio_message']['owner_id'],
+                        #     event.message['attachments'][0]['audio_message']['id'],
+                        #     event.message['attachments'][0]['audio_message']['access_key'],
+                        # )
                         # send_media(event.obj['message']['from_id'], attach)
                         # VK.messages.send(peer_id=event.object.peer_id, random_id=0, attachment=event.message['attachments'])
-                        print(f"FWD: {event.message['id']}")
+                        # print(f"FWD: {event.message['id']}")
                         # VK.messages.send(peer_id=id_admin, user_id = id_admin, random_id=0, forward_messages=[event.message['id']])
                         # for item in event.object['attachments']:
                             # if item['type'] == 'photo':
@@ -108,7 +94,7 @@ for event in LONGPOLL.listen():
                         #         attachments += ','
 
                         # send_photo1(event.obj['message']['from_id'], attachments)
-                    processing_state(event, id, state)
+                    processing_state(event, state)
 
         elif event.type == VkBotEventType.MESSAGE_EVENT:
             #TODO add try catch
@@ -118,4 +104,4 @@ for event in LONGPOLL.listen():
 
     except:
         print('stop_bot')
-        break
+        continue

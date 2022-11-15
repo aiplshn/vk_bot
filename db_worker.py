@@ -1,4 +1,6 @@
 import sqlite3
+import sys
+import traceback
 
 class admin:
     id: int
@@ -18,6 +20,9 @@ class admin:
 
     def get_query_delete_all(self) -> str:
         return f"DELETE FROM {self.table_name}"
+
+    def get_query_delete_from_id(self) -> str:
+        return f"DELETE FROM {self.table_name} WHERE id = {self.id}"
 
     def get_query_is_admin(self) -> str:
         return f"SELECT COUNT() FROM {self.table_name} WHERE id = {self.id}"
@@ -115,14 +120,16 @@ class DBWorker:
         adm.state = state
         self.execute_query(adm.get_query_update_state())
 
-    def is_admin(self, adm: admin) -> bool:
+    def is_admin(self, id_admin: int) -> bool:
+        adm = admin()
+        adm.id = id_admin
         res = self.execute_query_select(adm.get_query_is_admin())
         return res[0][0] != 0
 
     def get_admin_state(self, id_admin) -> int:
         adm = admin()
         adm.id = id_admin
-        if self.is_admin(adm):
+        if self.is_admin(id_admin):
             res = self.execute_query_select(adm.get_query_state())
             return int(res[0][0])
         else:
@@ -137,12 +144,29 @@ class DBWorker:
         self.execute_query(msg.get_query_drop_table())
 
     def execute_query_select(self, query):
-        self.cursor.execute(query)
-        return self.cursor.fetchall()
+        try:
+            self.cursor.execute(query)
+            return self.cursor.fetchall()
+        except sqlite3.Error as er:
+            print('SQLite error: %s' % (' '.join(er.args)))
+            print("Exception class is: ", er.__class__)
+            print('SQLite traceback: ')
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            print(traceback.format_exception(exc_type, exc_value, exc_tb))
+            self.connection.close()
+            
 
     def execute_query(self, query: str):
-        self.cursor.execute(query)
-        self.connection.commit()
+        try:
+            self.cursor.execute(query)
+            self.connection.commit()
+        except sqlite3.Error as er:
+            print('SQLite error: %s' % (' '.join(er.args)))
+            print("Exception class is: ", er.__class__)
+            print('SQLite traceback: ')
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            print(traceback.format_exception(exc_type, exc_value, exc_tb))
+            self.connection.close()
 
     def create_tables(self):
         adm = admin()
@@ -167,13 +191,31 @@ class DBWorker:
             res = self.execute_query_select("SELECT COUNT() FROM sqlite_master WHERE type='table';")
             if res[0][0] <= 1:
                 self.create_tables()
-        except sqlite3.Error as error:
-            print("Ошибка при подключении к sqlite", error)
+        except sqlite3.Error as er:
+            print("Ошибка при подключении к sqlite", er)
+            print('SQLite error: %s' % (' '.join(er.args)))
+            print("Exception class is: ", er.__class__)
+            print('SQLite traceback: ')
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            print(traceback.format_exception(exc_type, exc_value, exc_tb))
+            self.connection.close()
+
 
     def __del__(self):
         if(self.connection):
             self.connection.close()
             print("Connection closed")
+
+    def add_new_admin(self, id_new_admin):
+        adm = admin()
+        adm.id = id_new_admin
+        adm.state = 0
+        self.execute_query(adm.get_query_insert_into_table())
+
+    def delete_admin(self, id_delete_admin):
+        adm = admin()
+        adm.id = id_delete_admin
+        self.execute_query(adm.get_query_delete_from_id())
 
     def save_text_message(self, text, id_admin):
         adm = admin()
@@ -182,7 +224,7 @@ class DBWorker:
         msg.id_admin = id_admin
         msg.text = "'"+text+"'"
 
-        if self.is_admin(adm):
+        if self.is_admin(id_admin):
             print(msg.get_query_insert_into_table())
             self.execute_query(msg.get_query_insert_into_table())
 
@@ -216,7 +258,7 @@ class DBWorker:
         usr = user()
         return self.execute_query_select(usr.get_query_select_all_users())
 
-    def delete_message_for_admin(self, id):
+    def delete_message_for_admin_edit(self, id):
         msg = message()
         msg.id_admin = id
         self.execute_query(msg.get_query_delete_last_message_for_admin())
@@ -297,6 +339,10 @@ class DBWorker:
         msg = message()
         msg.id_admin = id
         return self.execute_query_select(msg.get_query_last_message())[0][3]
+
+    def delete_show_delay_message(self, id):
+        id_msg = self.get_id_show_delay_message(id)[0][0]
+        self.delete_message_for_it_id(id_msg)
 
 if __name__ == "__main__":
     db = DBWorker()

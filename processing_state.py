@@ -3,7 +3,8 @@ from support import *
 from globals import *
 import datetime
 
-def processing_state(event, user_id, state):
+def processing_state(event, state):
+    user_id = event.obj.message['from_id']
     if state == States.S_SEND_TEXT:
         save_text(user_id, event.obj.message['text'])
     elif state == States.S_SEND_PIC:
@@ -16,8 +17,10 @@ def processing_state(event, user_id, state):
         save_voise_message(user_id, event.message['id'])
     # elif state == States.S_SHOW_DELAY:
         # pass
-    elif state == States.S_START_ADD_ADMIN:
-        pass
+    elif state == States.S_ADD_NEW_ADMIN:
+        save_new_admin(event)
+    elif state == States.S_DELETE_ADMIN:
+        delete_from_admin(event)
     elif state == States.S_DATE_TIME:
         save_date_time(user_id, event.obj.message['text'])
     elif state == States.S_TIME_TODAY:
@@ -34,7 +37,7 @@ def processing_state(event, user_id, state):
     elif state == States.S_TIME_TOMORROW_DELAY:
         save_time(user_id, event.obj.message['text'], 1, True)
     elif state == States.S_TIME_AFTER_TOMORROW_DELAY:
-        save_time(user_id, event.obj.message['text'], 2, True)
+        save_time(user_id, event.obj.message['text'], 2, True)        
     elif state == States.S_WAIT:
         click_on_btn(user_id)
 
@@ -110,3 +113,56 @@ def save_voise_message(id, id_message):
     msg = DB.get_last_message(id)
     keyboard = get_keyboard_edit_message()
     send_media(id, attach, msg, keyboard, forward_message=str(id_message))
+
+def save_new_admin(event):
+    from_id = event.obj.message['from_id']
+    id_new_admin = check_admin_operation(event)
+    if id_new_admin == -1:
+        fail_check_admin(from_id, False)
+    else:
+        if DB.is_admin(id_new_admin):
+            keyboard = gen_keyboard(['Назад'],
+                                    ['back_to_admin_operations'])
+            send_msg(from_id, 'Админ уже добавлен', keyboard)
+        else:
+            DB.add_new_admin(id_new_admin)
+            send_msg(from_id, 'Готово')
+            DB.update_state(from_id, States.S_START)
+            send_start_message(from_id)
+
+
+def delete_from_admin(event):
+    from_id = event.obj.message['from_id']
+    id_delete_admin = check_admin_operation(event)
+    if id_delete_admin == -1:
+        fail_check_admin(from_id, False)
+    else:
+        if DB.is_admin(id_delete_admin):
+            DB.delete_admin(id_delete_admin)
+            send_msg(from_id, 'Готово')
+            DB.update_state(from_id, States.S_START)
+            send_start_message(from_id)
+        else:
+            keyboard = gen_keyboard(['Назад'],
+                                    ['back_to_admin_operations'])
+            send_msg(from_id, 'Такого админа нет', keyboard)
+
+        
+
+def check_admin_operation(event) -> int:
+    try:
+        id_admin = event.message['fwd_messages'][0]['from_id']
+        if id_admin <= 0:
+            raise
+        return id_admin
+    except:
+        return -1
+
+def fail_check_admin(id, del_add: bool): # del_add = True - del, False - add
+    action = ''
+    if del_add:
+        action = 'удалить'
+    else:
+        action = 'добавить'    
+    send_msg(id, f"Не удалось {action} админа.\nПерешлите любое сообщение от человека, которого хотите добавить")
+

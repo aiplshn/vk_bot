@@ -6,7 +6,7 @@ class States():
     S_SEND_PIC = 3 # отправка фото
     S_SEND_AUDIO = 4 # отправка аудио
 
-    S_START_ADD_ADMIN = 5 # добавление админа
+    S_START_ADMIN = 5 # 
     S_SHOW_DELAY = 6 # показать отложенные
     
     S_WAIT = 7 # ждем нажатия на кнопку
@@ -20,3 +20,6 @@ class States():
     S_TIME_TODAY_DELAY = 13 #отправка времени сегодня при просмотре отложенных
     S_TIME_TOMORROW_DELAY = 14 #отправка времени завтра при просмотре отложенных
     S_TIME_AFTER_TOMORROW_DELAY = 15 #отправка времени послезавтра при просмотре отложенных
+
+    S_ADD_NEW_ADMIN = 16 # добавление админа
+    S_DELETE_ADMIN = 17 # удаление админа
