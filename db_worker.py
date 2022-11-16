@@ -78,7 +78,7 @@ class message:
         self.is_start_message = 0
 
     def get_query_create_table(self) -> str:
-        return f"""CREATE TABLE IF NOT EXISTS {self.table_name} (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,text VARCHAR (2000),media_attachments VARCHAR (2000), id_audio_message_str VARCHAR (255), id_admin INTEGER REFERENCES admin (id), send_time  DATETIME, is_start_message INTEGER);"""
+        return f"""CREATE TABLE IF NOT EXISTS {self.table_name} (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,text VARCHAR (2000),media_attachments VARCHAR (2000), id_audio_message_str VARCHAR (255), id_admin INTEGER REFERENCES admin (id), send_time  DATETIME, is_start_message INTEGER DEFAULT (0));"""
 
     def get_query_drop_table(self) -> str:
         return f"DROP TABLE IF EXISTS {self.table_name}"
