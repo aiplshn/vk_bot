@@ -22,7 +22,6 @@ def monitor_delay_messages():
             date_time_msg = datetime.datetime.strptime(row_msg[0][5],"%Y-%m-%d %H:%M:%S")
             date_time_now = datetime.datetime.now()
             delta = (date_time_msg - date_time_now).total_seconds()
-            print(delta)
             if delta <= 0:
                 mailing(row_msg[0][1], row_msg[0][2], row_msg[0][3], db=db)
                 db.delete_message_for_it_id(row_msg[0][0])
