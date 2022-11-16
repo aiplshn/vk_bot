@@ -7,6 +7,8 @@ from processing_state import processing_state
 import threading
 import time
 import datetime
+from vk_api.utils import get_random_id
+
 
 id_admin = 54442110
 id_kate = 292576789
@@ -45,6 +47,13 @@ for event in LONGPOLL.listen():
             id = event.obj.message['from_id']
             print(id)
             #Админ
+            action = event.obj['message'].get('action')
+            if action != None:
+                if action['type'] == 'chat_invite_user' and action["member_id"] == -217125658: #вместо -12345678 айди группы с минусом
+                    VK.messages.send(
+                        peer_id=event.message.peer_id,
+                        random_id=get_random_id(),
+                        message="Привет")
             if id == id_admin or id == id_kate:
                 state = DB.get_admin_state(id)
                 if state == States.S_START:
@@ -102,6 +111,10 @@ for event in LONGPOLL.listen():
             print(event.obj['user_id'])
             getattr(bh, event.object.payload.get('type'))(int(event.obj['user_id']), event.obj.conversation_message_id)
 
+        elif event.type == VkBotEventType.MESSAGE_ALLOW:
+            user_id = int(event.obj['user_id'])
+            send_msg(user_id, 'ЗДАРОВА')
+            DB.add_user(user_id)
     except:
         print('stop_bot')
         continue

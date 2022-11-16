@@ -26,6 +26,21 @@ def send_msg(peer_id, msg, keyboard = None, edit = False, message_id = 0, random
         else:    
             VK.messages.send(peer_id=peer_id, message=msg, keyboard=keyboard, random_id=random_id, forward_messages=forward_message)
 
+def get_keyboard_edit_start_message():
+    return gen_keyboard([
+                        'Добавить фото',
+                        'Добавить видео',
+                        'Добавить аудио',
+                        'Готово',
+                        'Назад'],
+                        [
+                        'add_photo_start',
+                        'add_video_start',
+                        'add_audio_start',
+                        'apply_edit_msg_start',
+                        'back_enter_message_start'])
+
+
 def get_keyboard_edit_message():
     return gen_keyboard([
                         'Добавить фото',
@@ -143,12 +158,14 @@ def delay_message_set_time_day_after(id, message_id, show=False):
 
 def send_start_message(id, edit = False, message_id=0):
     keyboard = gen_keyboard(
-                        ['Создать сообщение для рассылки',
-                         'Посмотреть отложенные сообщения',
-                         'Админы'],
+                        ['Сообщение для рассылки',
+                         'Отложенные сообщения',
+                         'Админы',
+                         'Стартовое сообщение'],
                         ['create_messages',
                          'show_delays_messages',
-                         'operations_admin'])
+                         'operations_admin',
+                         'update_start_message'])
     admin_start_message = "Привет, Админ. Что нужно сделать?"
 
     send_msg(id, admin_start_message, keyboard, edit, message_id, 0)

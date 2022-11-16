@@ -2,6 +2,8 @@ import sqlite3
 import sys
 import traceback
 
+DEFAULT_START_MESSAGE = f"ПРИВЕТ, я бот. Жди сообщения от админа"
+
 class admin:
     id: int
     state: int
@@ -16,7 +18,7 @@ class admin:
         return f"DROP TABLE IF EXISTS {self.table_name}"
 
     def get_query_insert_into_table(self) -> str:
-        return f"""INSERT INTO {self.table_name} VALUES ({self.id}, {self.state}, 0)"""
+        return f"""INSERT or ignore  INTO {self.table_name} VALUES ({self.id}, {self.state}, 0)"""
 
     def get_query_delete_all(self) -> str:
         return f"DELETE FROM {self.table_name}"
@@ -50,7 +52,7 @@ class user:
         return f"DROP TABLE IF EXISTS {self.table_name}"
 
     def get_query_insert_into_table(self) -> str:
-        return f"""INSERT INTO {self.table_name} VALUES ({self.id})"""
+        return f"insert or ignore into {self.table_name} VALUES ({self.id})"
 
     def get_query_delete_all(self) -> str:
         return f"DELETE FROM {self.table_name}"
@@ -65,6 +67,7 @@ class message:
     id_audio_message_str: str
     id_admin: int
     send_time: str
+    is_start_message: int
     table_name = 'message'
 
     def __init__(self) -> None:
@@ -72,9 +75,10 @@ class message:
         self.media_attachments = "''" 
         self.id_audio_message_str = "''"
         self.send_time = "''"
+        self.is_start_message = 0
 
     def get_query_create_table(self) -> str:
-        return f"""CREATE TABLE IF NOT EXISTS {self.table_name} (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,text VARCHAR (2000),media_attachments VARCHAR (2000), id_audio_message_str VARCHAR (255), id_admin INTEGER REFERENCES admin (id), send_time  DATETIME);"""
+        return f"""CREATE TABLE IF NOT EXISTS {self.table_name} (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,text VARCHAR (2000),media_attachments VARCHAR (2000), id_audio_message_str VARCHAR (255), id_admin INTEGER REFERENCES admin (id), send_time  DATETIME, is_start_message INTEGER);"""
 
     def get_query_drop_table(self) -> str:
         return f"DROP TABLE IF EXISTS {self.table_name}"
@@ -86,7 +90,7 @@ class message:
         return f"DELETE FROM {self.table_name}"
 
     def get_query_last_message(self) -> str:
-        return f"select * from {self.table_name} where id_admin = {self.id_admin} and id <= (select seq from sqlite_sequence where name = '{self.table_name}') order by id DESC LIMIT 1"
+        return f"select * from {self.table_name} where is_start_message = 0 and id_admin = {self.id_admin} and id <= (select seq from sqlite_sequence where name = '{self.table_name}') order by id DESC LIMIT 1"
 
     def get_query_update_attachments(self) -> str:
         return f"UPDATE {self.table_name} SET media_attachments = '{self.media_attachments}' where id = {self.id}"
@@ -95,7 +99,7 @@ class message:
         return f"DELETE FROM {self.table_name} WHERE id = (select id from {self.table_name} where id_admin = {self.id_admin} and id <= (select seq from sqlite_sequence where name = '{self.table_name}') order by id DESC LIMIT 1)"
 
     def get_query_delay_early_message(self) -> str:
-        return f"select * from {self.table_name} WHERE datetime(send_time) IS NOT NULL ORDER BY send_time ASC LIMIT 1;"
+        return f"select * from {self.table_name} WHERE is_start_message = 0 and datetime(send_time) IS NOT NULL ORDER BY send_time ASC LIMIT 1;"
 
     def get_query_delete_for_id(self) -> str:
         return f"DELETE FROM {self.table_name} WHERE id = {self.id}"
@@ -104,13 +108,28 @@ class message:
         return f"UPDATE {self.table_name} SET send_time = '{self.send_time}' WHERE id = (select id from {self.table_name} where id_admin = {self.id_admin} and id <= (select seq from sqlite_sequence where name = '{self.table_name}') order by id DESC LIMIT 1)"
 
     def get_query_all_delay_messages(self) -> str:
-        return f"SELECT * FROM {self.table_name} WHERE datetime(send_time) IS NOT NULL ORDER BY send_time ASC"
+        return f"SELECT * FROM {self.table_name} WHERE is_start_message = 0 and datetime(send_time) IS NOT NULL ORDER BY send_time ASC"
 
     def get_query_set_datetime_for_id(self) -> str:
         return f"UPDATE {self.table_name} SET send_time = '{self.send_time}' WHERE id = {self.id};"
     
     def get_query_update_id_voise_message(self) -> str:
         return f"UPDATE {self.table_name} SET id_audio_message_str = '{self.id_audio_message_str}' WHERE id = {self.id}"
+
+    def get_query_insert_start_message(self) -> str:
+        return f"""INSERT INTO {self.table_name} (text, media_attachments, id_audio_message_str, is_start_message) VALUES ('{self.text}', {self.media_attachments}, {self.id_audio_message_str}, 1)"""
+
+    def get_query_select_start_message(self) -> str:
+        return f"SELECT * FROM {self.table_name} WHERE is_start_message = 1 LIMIT 1"
+
+    def get_query_update_start_message_attachments(self) -> str:
+        return f"UPDATE {self.table_name} SET media_attachments='{self.media_attachments}' WHERE is_start_message=1" 
+    
+    def get_query_update_start_message_id_voise_message(self) -> str:
+        return f"UPDATE {self.table_name} SET id_audio_message_str={self.id_audio_message_str} WHERE is_start_message=1"
+    
+    def get_query_update_text_start_message(self) -> str:
+        return f"UPDATE {self.table_name} SET text = '{self.text}' WHERE is_start_message=1"
 
 class DBWorker:
 
@@ -191,6 +210,7 @@ class DBWorker:
             res = self.execute_query_select("SELECT COUNT() FROM sqlite_master WHERE type='table';")
             if res[0][0] <= 1:
                 self.create_tables()
+                self.insert_start_message(DEFAULT_START_MESSAGE)
         except sqlite3.Error as er:
             print("Ошибка при подключении к sqlite", er)
             print('SQLite error: %s' % (' '.join(er.args)))
@@ -205,6 +225,11 @@ class DBWorker:
         if(self.connection):
             self.connection.close()
             print("Connection closed")
+
+    def add_user(self, user_id):
+        usr = user()
+        usr.id = user_id()
+        self.execute_query(usr.get_query_insert_into_table())
 
     def add_new_admin(self, id_new_admin):
         adm = admin()
@@ -343,6 +368,36 @@ class DBWorker:
     def delete_show_delay_message(self, id):
         id_msg = self.get_id_show_delay_message(id)[0][0]
         self.delete_message_for_it_id(id_msg)
+
+    def insert_start_message(self, msg_text):
+        msg = message()
+        msg.text = msg_text
+        self.execute_query(msg.get_query_insert_start_message())
+
+    def get_start_message(self):
+        msg = message()
+        return self.execute_query_select(msg.get_query_select_start_message())[0]
+
+    def set_media_for_start_message(self, attachments):
+        msg = message()
+        last_msg = self.get_start_message()
+        last_attachment = last_msg[2]
+        if last_attachment != '':
+            msg.media_attachments = last_attachment + "," + attachments
+        else:
+            msg.media_attachments = attachments
+        self.execute_query(msg.get_query_update_start_message_attachments())
+        return msg.media_attachments
+
+    def set_voise_message_for_start_message(self, fwd_msg):
+        msg = message()
+        msg.id_audio_message_str = str(fwd_msg)
+        self.execute_query(msg.get_query_update_start_message_id_voise_message())
+    
+    def set_text_start_message(self, msg_text):
+        msg = message()
+        msg.text = msg_text
+        self.execute_query(msg.get_query_update_text_start_message())
 
 if __name__ == "__main__":
     db = DBWorker()

@@ -23,3 +23,9 @@ class States():
 
     S_ADD_NEW_ADMIN = 16 # добавление админа
     S_DELETE_ADMIN = 17 # удаление админа
+
+    S_UPDATE_START_MESSAGE = 18 #добавление нового сообщения
+    # S_SEND_TEXT_START_MESSAGE = 19 # отправка текста стартового сообщения
+    S_SEND_VIDEO_START_MESSAGE = 19 # отправка видео стартового сообщения
+    S_SEND_PIC_START_MESSAGE = 20 # отправка фото стартового сообщения
+    S_SEND_AUDIO_START_MESSAGE = 21 # отправка аудио стартового сообщения

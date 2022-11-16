@@ -38,6 +38,14 @@ def processing_state(event, state):
         save_time(user_id, event.obj.message['text'], 1, True)
     elif state == States.S_TIME_AFTER_TOMORROW_DELAY:
         save_time(user_id, event.obj.message['text'], 2, True)        
+    elif state == States.S_UPDATE_START_MESSAGE:
+        save_text_start_message(user_id, event.obj.message['text'])
+    elif state == States.S_SEND_PIC_START_MESSAGE:
+        save_media_start_message(user_id, collect_attachments(event, 'photo'))
+    elif state == States.S_SEND_VIDEO_START_MESSAGE:
+        save_media_start_message(user_id, collect_attachments(event, 'video'))
+    elif state == States.S_SEND_AUDIO_START_MESSAGE:
+        save_voise_start_message(user_id, event.message['id'])
     elif state == States.S_WAIT:
         click_on_btn(user_id)
 
@@ -71,6 +79,13 @@ def save_media(id, attachments):
     msg = DB.get_last_message(id)
     keyboard = get_keyboard_edit_message()
     attach_new = DB.save_media(id, attachments)
+    send_media(id, attach_new, msg, keyboard)#TODO add fwd_msg
+    DB.update_state(id, States.S_WAIT) 
+
+def save_media_start_message(id, attachments):
+    msg = DB.get_start_message()[1]
+    keyboard = get_keyboard_edit_start_message()
+    attach_new = DB.set_media_for_start_message(attachments)
     send_media(id, attach_new, msg, keyboard)
     DB.update_state(id, States.S_WAIT)
 
@@ -113,6 +128,15 @@ def save_voise_message(id, id_message):
     msg = DB.get_last_message(id)
     keyboard = get_keyboard_edit_message()
     send_media(id, attach, msg, keyboard, forward_message=str(id_message))
+
+def save_voise_start_message(id, id_message):
+    DB.set_voise_message_for_start_message(id_message)
+    start_msg = DB.get_start_message()
+    attach = start_msg[2]
+    msg = start_msg[1]
+    keyboard = get_keyboard_edit_start_message()
+    send_media(id, attach, msg, keyboard, forward_message=str(id_message))
+ 
 
 def save_new_admin(event):
     from_id = event.obj.message['from_id']
@@ -166,3 +190,8 @@ def fail_check_admin(id, del_add: bool): # del_add = True - del, False - add
         action = 'добавить'    
     send_msg(id, f"Не удалось {action} админа.\nПерешлите любое сообщение от человека, которого хотите добавить")
 
+def save_text_start_message(id, text):
+    DB.set_text_start_message(text)
+    DB.update_state(id, States.S_WAIT)
+    keyboard = get_keyboard_edit_start_message()
+    send_msg(id, text, keyboard)

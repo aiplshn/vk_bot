@@ -2,6 +2,7 @@ from config import States
 from globals import *
 from support import *
 import datetime
+from vk_api.utils import get_random_id
 
 def own_type(user_id):
     print('success')
@@ -25,7 +26,7 @@ def create_messages(user_id, message_id):
     print('created')
 
 def add_photo(user_id, message_id):
-    add_media(user_id, message_id, States.S_SEND_PIC, 'Отправь одно или несколько фото', 'back_send_photo')
+    add_media(user_id, message_id, States.S_SEND_PIC, 'Отправь одно или несколько фото', 'back_send_to_edit')
     print('photo added')
 
 def operations_admin(id, message_id):
@@ -42,7 +43,7 @@ def operations_admin(id, message_id):
     print('operations admin')
 
 def add_video(user_id, message_id):
-    add_media(user_id, message_id, States.S_SEND_VIDEO, 'Отправь одно или несколько видео', 'back_send_video')
+    add_media(user_id, message_id, States.S_SEND_VIDEO, 'Отправь одно или несколько видео', 'back_send_to_edit')
     print('video added')
 
 def add_media(user_id, message_id, state, message, callback_name_back_btn):
@@ -173,8 +174,9 @@ def prev_show_delay_message(id, message_id):
 
 
 def add_audio(id, message_id):
-    DB.update_state(id, States.S_SEND_AUDIO)
-    send_msg(id, 'Отправь голосовое', edit=True, message_id=message_id)
+    add_media(id, message_id, States.S_SEND_AUDIO, 'Отправь голосовое', 'back_send_to_edit')
+    # DB.update_state(id, States.S_SEND_AUDIO)
+    # send_msg(id, 'Отправь голосовое', edit=True, message_id=message_id)
 
 def delay_message_for_show(id, message_id):
     DB.update_state(id, States.S_DATE_TIME_DELAY)
@@ -246,3 +248,81 @@ def delete_admin(id, message_id):
 def back_to_admin_operations(id, message_id):
     DB.update_state(id, States.S_WAIT)
     operations_admin(id, message_id)
+
+def update_start_message(id, message_id):
+    DB.update_state(id, States.S_UPDATE_START_MESSAGE)
+    keyboard = gen_keyboard(['Без текста',
+                             'Назад'],
+                            ['start_message_without_text',
+                             'back_to_start_from_edit_start_message'])
+    start_message = DB.get_start_message()
+    edit = True
+    info = 'Напиши любое текстовое сообщение без вложений\nТекущее сообщение:\n---------\n'+str(start_message[1])
+    if start_message[3] != '':
+        edit = False
+    if start_message[2] != '':
+        send_media(id, start_message[2], info, keyboard, edit=edit, message_id=message_id, forward_message=str(start_message[3]))
+    else:
+        send_msg(id, info, keyboard, edit=edit, message_id=message_id, forward_message=str(start_message[3]))
+
+def start_message_without_text(id, message_id):
+    DB.update_state(id, States.S_WAIT)
+    DB.set_text_start_message('')
+    keyboard = get_keyboard_edit_start_message()
+    send_msg(id, 'Выбери действие:', keyboard, edit=True, message_id=message_id)
+
+# def add_photo_start(id, message_id):
+    # DB.update_state(id, States.S_SEND_PIC_START_MESSAGE)
+
+def add_photo_start(id, message_id):
+    add_media(id, message_id, States.S_SEND_PIC_START_MESSAGE, 'Отправь одно или несколько фото', 'back_send_to_edit_start_message')
+    print('video added')
+    
+def add_video_start(id, message_id):
+    add_media(id, message_id, States.S_SEND_VIDEO_START_MESSAGE, 'Отправь одно или несколько видео', 'back_send_to_edit_start_message')
+    print('video added')
+
+def add_audio_start(id, message_id):
+    add_media(id, message_id, States.S_SEND_AUDIO_START_MESSAGE, 'Отправь голосовое', 'back_send_to_edit_start_message')
+    print('video added')
+
+def back_send_to_edit_start_message(id, message_id):
+    start_msg = DB.get_start_message()
+    attach = start_msg[2]
+    msg = start_msg[1]
+    fwd_msg = start_msg[3]
+    keyboard = get_keyboard_edit_start_message()
+    if msg == '':
+        msg = 'Выбери действие:'
+    edit = True
+    if fwd_msg != '':
+        edit = False
+    if attach != '':
+        send_media(id, attach, msg, keyboard, edit=edit, message_id=message_id, forward_message=str(fwd_msg))
+    else:
+        send_msg(id, msg, keyboard, edit=edit, message_id=message_id, forward_message=str(fwd_msg))
+
+def back_enter_message_start(id, message_id):
+        update_start_message(id, message_id)
+
+def back_to_start_from_edit_start_message(id, message_id):
+    if check_start_msg():
+        back_to_start(id, message_id)
+    else:
+        send_msg(id, 'Предыдущее сообщение удалено, введи новое!')
+
+def apply_edit_msg_start(id, message_id):
+    if check_start_msg():
+        back_to_start(id, message_id)
+    else:
+        send_msg(id, 'Ничего не добавлено!')
+
+
+def check_start_msg() -> bool:
+    start_msg = DB.get_start_message()
+    attach = start_msg[2]
+    msg = start_msg[1]
+    fwd_msg = start_msg[3]
+    if attach == '' and msg == '' and fwd_msg == '':
+        return False
+    return True
