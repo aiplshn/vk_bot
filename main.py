@@ -7,7 +7,6 @@ from processing_state import processing_state
 import threading
 import time
 import datetime
-from vk_api.utils import get_random_id
 
 
 id_admin = 54442110
@@ -22,7 +21,6 @@ def monitor_delay_messages():
             date_time_msg = datetime.datetime.strptime(row_msg[0][5],"%Y-%m-%d %H:%M:%S")
             date_time_now = datetime.datetime.now()
             delta = (date_time_msg - date_time_now).total_seconds()
-            print(delta)
             if delta <= 0:
                 mailing(row_msg[0][1], row_msg[0][2], row_msg[0][3], db=db)
                 db.delete_message_for_it_id(row_msg[0][0])
@@ -38,83 +36,38 @@ def send_text(id, text, keyboard=None):
     # print(keyboard)
     VK_SESSION.method('messages.send', post)
 
-x = threading.Thread(target=monitor_delay_messages)
-x.start()
+mailing_thread = threading.Thread(target=monitor_delay_messages)
+mailing_thread.start()
+
 print('start')
-for event in LONGPOLL.listen():
-    try:
-        if event.type == VkBotEventType.MESSAGE_NEW:
-            id = event.obj.message['from_id']
-            print(id)
-            #Админ
-            action = event.obj['message'].get('action')
-            if action != None:
-                if action['type'] == 'chat_invite_user' and action["member_id"] == -217125658: #вместо -12345678 айди группы с минусом
-                    VK.messages.send(
-                        peer_id=event.message.peer_id,
-                        random_id=get_random_id(),
-                        message="Привет")
-            if id == id_admin or id == id_kate:
-                state = DB.get_admin_state(id)
-                if state == States.S_START:
-                    send_start_message(event.obj.message['from_id'])
-
-                    msg = event.obj.message['text']
-                    # id_new_admin = event.message['fwd_messages'][0]['from_id']
-                    if msg == 's':
-                        # keyboard = VkKeyboard(inline=True)
-                        # keyboard.add_line()
-                        # keyboard.add_location_button('BTN')
-                        # keyboard.add_button('BTN', VkKeyboardColor.SECONDARY)
-                        # keyboard_1 = VkKeyboard(one_time=False, inline=True)
-                        # keyboard_1 = gen_keyboard(['Откртыть Url', 'random'], ['own_type','o2'])
-                        # keyboard_1.add_callback_button(label='Откртыть Url', color=VkKeyboardColor.POSITIVE, payload={"type": "callback_type_edit"})
-                        # keyboard_1.add_line()
-
-                        # send_text(id, 'hello', keyboard_1)
-                        pass
-                    if msg == 'p' or msg == 'п':
-                        send_text(id, 'hello')
-                        send_text(id, f"{id}")
-
-                else:
-                    #Обработка состояния
-                    # if state == States.S_SEND_AUDIO:
-                        # attach = 'audio{}_{}_{}'.format(
-                        #     event.message['attachments'][0]['audio_message']['owner_id'],
-                        #     event.message['attachments'][0]['audio_message']['id'],
-                        #     event.message['attachments'][0]['audio_message']['access_key'],
-                        # )
-                        # send_media(event.obj['message']['from_id'], attach)
-                        # VK.messages.send(peer_id=event.object.peer_id, random_id=0, attachment=event.message['attachments'])
-                        # print(f"FWD: {event.message['id']}")
-                        # VK.messages.send(peer_id=id_admin, user_id = id_admin, random_id=0, forward_messages=[event.message['id']])
-                        # for item in event.object['attachments']:
-                            # if item['type'] == 'photo':
-                                # send_photo1(event.user_id, 'photo{}_{}'.format(item['owner_id'], item['id']))
-                        # attachments = ''
-                        # count_photos = len(event.message['attachments'])
-                        # for i in range(count_photos):
-                        #     attachments +='photo{}_{}_{}'.format(
-                        #         event.message['attachments'][i]['photo']['owner_id'],
-                        #         event.message['attachments'][i]['photo']['id'],
-                        #         event.message['attachments'][i]['photo']['access_key'])
-                        #     if i != count_photos-1:
-                        #         attachments += ','
-
-                        # send_photo1(event.obj['message']['from_id'], attachments)
+while True:
+    for event in LONGPOLL.listen():
+        try:
+            if event.type == VkBotEventType.MESSAGE_NEW:
+                id = event.obj.message['from_id']
+                print(id)
+                #Админ
+                if DB.is_admin(id):
+                    state = DB.get_admin_state(id)
                     processing_state(event, state)
+                else:
+                    DB.add_user(id)
+                    send_msg(id, 'Не знаю такой команды')
 
-        elif event.type == VkBotEventType.MESSAGE_EVENT:
-            #TODO add try catch
-            print(event.object.payload.get('type'))
-            print(event.obj['user_id'])
-            getattr(bh, event.object.payload.get('type'))(int(event.obj['user_id']), event.obj.conversation_message_id)
+            elif event.type == VkBotEventType.MESSAGE_EVENT:
+                #TODO add try catch
+                user_id = event.obj['user_id']
+                print(event.object.payload.get('type'))
+                if DB.is_admin(user_id):
+                    getattr(bh, event.object.payload.get('type'))(int(user_id), event.obj.conversation_message_id)
+                else:
+                    DB.add_user(user_id)
+                    send_msg(user_id, 'Не знаю такой команды')
 
-        elif event.type == VkBotEventType.MESSAGE_ALLOW:
-            user_id = int(event.obj['user_id'])
-            send_msg(user_id, 'ЗДАРОВА')
-            DB.add_user(user_id)
-    except:
-        print('stop_bot')
-        continue
+            elif event.type == VkBotEventType.MESSAGE_ALLOW:
+                user_id = int(event.obj['user_id'])
+                send_msg(user_id, 'ЗДАРОВА')
+                DB.add_user(user_id)
+        except:
+            print('stop_bot')
+            continue

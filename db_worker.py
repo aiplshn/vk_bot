@@ -60,6 +60,9 @@ class user:
     def get_query_select_all_users(self) -> str:
         return f"SELECT * FROM {self.table_name}"
 
+    def get_query_select_for_id(self) -> str:
+        return f"SELECT * FROM {self.table_name} WHERE id = {self.id}"
+
 class message:
     id: int
     text: str
@@ -230,6 +233,12 @@ class DBWorker:
         usr = user()
         usr.id = user_id()
         self.execute_query(usr.get_query_insert_into_table())
+
+    def is_user(self, user_id) -> bool:
+        usr = user()
+        usr.id = user_id
+        res = self.execute_query_select(usr.get_query_select_for_id())
+        return len(res) != 0
 
     def add_new_admin(self, id_new_admin):
         adm = admin()

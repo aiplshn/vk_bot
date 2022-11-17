@@ -5,7 +5,9 @@ import datetime
 
 def processing_state(event, state):
     user_id = event.obj.message['from_id']
-    if state == States.S_SEND_TEXT:
+    if state == States.S_START:
+        send_start_message(event.obj.message['from_id'])
+    elif state == States.S_SEND_TEXT:
         save_text(user_id, event.obj.message['text'])
     elif state == States.S_SEND_PIC:
         #TODO проверка на фото
