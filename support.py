@@ -1,31 +1,33 @@
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
-from globals import *
+import globals
 import datetime
 from vk_api.utils import get_random_id
 
-def send_media(peer_id, attachments, msg='',keyboard = None, random_id=get_random_id(), edit = False, message_id = 0, forward_message=''):
+def send_media(peer_id, attachments, msg='',keyboard = None, edit = False, message_id = 0, forward_message=''):
+    random_id=get_random_id()
     if keyboard == None:
         if edit:
-            VK.messages.edit(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, conversation_message_id = message_id, forward_messages=forward_message)
+            globals.VK.messages.edit(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, conversation_message_id = message_id, forward_messages=forward_message)
         else:
-            VK.messages.send(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, forward_messages=forward_message)
+            globals.VK.messages.send(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, forward_messages=forward_message)
     else:
         if edit:
-            VK.messages.edit(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, keyboard=keyboard, conversation_message_id = message_id, forward_messages=forward_message)
+            globals.VK.messages.edit(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, keyboard=keyboard, conversation_message_id = message_id, forward_messages=forward_message)
         else:
-            VK.messages.send(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, keyboard=keyboard, forward_messages=forward_message)
+            globals.VK.messages.send(peer_id=peer_id, message=msg, attachment= attachments, random_id = random_id, keyboard=keyboard, forward_messages=forward_message)
 
-def send_msg(peer_id, msg, keyboard = None, edit = False, message_id = 0, random_id=get_random_id(), forward_message=''):
+def send_msg(peer_id, msg, keyboard = None, edit = False, message_id = 0, forward_message=''):
+    random_id=get_random_id()
     if keyboard == None:
         if edit:
-            VK.messages.edit(peer_id=peer_id, message=msg, random_id=random_id, conversation_message_id = message_id, forward_messages=forward_message)
+            globals.VK.messages.edit(peer_id=peer_id, message=msg, random_id=random_id, conversation_message_id = message_id, forward_messages=forward_message)
         else:
-            VK.messages.send(peer_id=peer_id, message=msg, random_id=random_id, forward_messages=forward_message)
+            globals.VK.messages.send(peer_id=peer_id, message=msg, random_id=random_id, forward_messages=forward_message)
     else:
         if edit:
-            VK.messages.edit(peer_id=peer_id, message=msg, keyboard=keyboard, random_id=random_id, conversation_message_id = message_id, forward_messages=forward_message)
+            globals.VK.messages.edit(peer_id=peer_id, message=msg, keyboard=keyboard, random_id=random_id, conversation_message_id = message_id, forward_messages=forward_message)
         else:    
-            VK.messages.send(peer_id=peer_id, message=msg, keyboard=keyboard, random_id=random_id, forward_messages=forward_message)
+            globals.VK.messages.send(peer_id=peer_id, message=msg, keyboard=keyboard, random_id=random_id, forward_messages=forward_message)
 
 def get_keyboard_edit_start_message():
     return gen_keyboard([

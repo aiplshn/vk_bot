@@ -1,6 +1,6 @@
 from states import *
 from support import *
-from globals import *
+import globals
 import datetime
 
 def processing_state(event, state):
@@ -53,14 +53,14 @@ def processing_state(event, state):
 
 def save_text(id, msg):
     keyboard = get_keyboard_edit_message()
-    VK.messages.send(
+    globals.VK.messages.send(
                     user_id=id,
-                    random_id=0,
+                    random_id=get_random_id(),
                     keyboard = keyboard,
                     peer_id=id,
                     message=msg)
-    DB.save_text_message(msg, id)
-    DB.update_state(id, States.S_WAIT)
+    globals.DB.save_text_message(msg, id)
+    globals.DB.update_state(id, States.S_WAIT)
 
 
 def collect_attachments(event, media_type) -> str:
@@ -78,18 +78,18 @@ def collect_attachments(event, media_type) -> str:
     return attachments
 
 def save_media(id, attachments):
-    msg = DB.get_last_message(id)
+    msg = globals.DB.get_last_message(id)
     keyboard = get_keyboard_edit_message()
-    attach_new = DB.save_media(id, attachments)
+    attach_new = globals.DB.save_media(id, attachments)
     send_media(id, attach_new, msg, keyboard)#TODO add fwd_msg
-    DB.update_state(id, States.S_WAIT) 
+    globals.DB.update_state(id, States.S_WAIT) 
 
 def save_media_start_message(id, attachments):
-    msg = DB.get_start_message()[1]
+    msg = globals.DB.get_start_message()[1]
     keyboard = get_keyboard_edit_start_message()
-    attach_new = DB.set_media_for_start_message(attachments)
+    attach_new = globals.DB.set_media_for_start_message(attachments)
     send_media(id, attach_new, msg, keyboard)
-    DB.update_state(id, States.S_WAIT)
+    globals.DB.update_state(id, States.S_WAIT)
 
 def click_on_btn(id):
     send_msg(id, 'Выбери действие')
@@ -98,11 +98,11 @@ def save_date_time(id, datetime_str, show = False):
     date_time_msg = check_format_datetime(datetime_str)
     if date_time_msg != None:
         if show:
-            DB.update_datetime_message(id, str(date_time_msg))
-            DB.update_id_show_delay_message(id, 0)
+            globals.DB.update_datetime_message(id, str(date_time_msg))
+            globals.DB.update_id_show_delay_message(id, 0)
         else:
-            DB.update_datetime_message_edit(id,str(date_time_msg))
-        DB.update_state(id, States.S_START)
+            globals.DB.update_datetime_message_edit(id,str(date_time_msg))
+        globals.DB.update_state(id, States.S_START)
         send_msg(id, 'Готово')
     else:
         send_msg(id, "Неверный формат. Введите в формате 'ДД.ММ.ГГГГ ЧЧ:мм'.")
@@ -114,26 +114,26 @@ def save_time(id, time_str, day_delay, show = False): #day_delay 0 - сегод�
     date_time_msg = check_format_datetime(datetime_str)
     if date_time_msg != None:
         if show:
-            DB.update_datetime_message(id, str(date_time_msg))
-            DB.update_id_show_delay_message(id, 0)
+            globals.DB.update_datetime_message(id, str(date_time_msg))
+            globals.DB.update_id_show_delay_message(id, 0)
         else:
-            DB.update_datetime_message_edit(id,str(date_time_msg))
-        DB.update_state(id, States.S_START)
+            globals.DB.update_datetime_message_edit(id,str(date_time_msg))
+        globals.DB.update_state(id, States.S_START)
         send_msg(id, 'Готово')
     else:
         send_msg(id, "Неверный формат. Введите в формате 'ЧЧ:мм'.")
 
 
 def save_voise_message(id, id_message):
-    DB.update_audio_message(id, id_message)
-    attach = DB.get_last_attachments(id)
-    msg = DB.get_last_message(id)
+    globals.DB.update_audio_message(id, id_message)
+    attach = globals.DB.get_last_attachments(id)
+    msg = globals.DB.get_last_message(id)
     keyboard = get_keyboard_edit_message()
     send_media(id, attach, msg, keyboard, forward_message=str(id_message))
 
 def save_voise_start_message(id, id_message):
-    DB.set_voise_message_for_start_message(id_message)
-    start_msg = DB.get_start_message()
+    globals.DB.set_voise_message_for_start_message(id_message)
+    start_msg = globals.DB.get_start_message()
     attach = start_msg[2]
     msg = start_msg[1]
     keyboard = get_keyboard_edit_start_message()
@@ -146,14 +146,14 @@ def save_new_admin(event):
     if id_new_admin == -1:
         fail_check_admin(from_id, False)
     else:
-        if DB.is_admin(id_new_admin):
+        if globals.DB.is_admin(id_new_admin):
             keyboard = gen_keyboard(['Назад'],
                                     ['back_to_admin_operations'])
             send_msg(from_id, 'Админ уже добавлен', keyboard)
         else:
-            DB.add_new_admin(id_new_admin)
+            globals.DB.add_new_admin(id_new_admin)
             send_msg(from_id, 'Готово')
-            DB.update_state(from_id, States.S_START)
+            globals.DB.update_state(from_id, States.S_START)
             send_start_message(from_id)
 
 
@@ -163,10 +163,10 @@ def delete_from_admin(event):
     if id_delete_admin == -1:
         fail_check_admin(from_id, False)
     else:
-        if DB.is_admin(id_delete_admin):
-            DB.delete_admin(id_delete_admin)
+        if globals.DB.is_admin(id_delete_admin):
+            globals.DB.delete_admin(id_delete_admin)
             send_msg(from_id, 'Готово')
-            DB.update_state(from_id, States.S_START)
+            globals.DB.update_state(from_id, States.S_START)
             send_start_message(from_id)
         else:
             keyboard = gen_keyboard(['Назад'],
@@ -193,7 +193,7 @@ def fail_check_admin(id, del_add: bool): # del_add = True - del, False - add
     send_msg(id, f"Не удалось {action} админа.\nПерешлите любое сообщение от человека, которого хотите добавить")
 
 def save_text_start_message(id, text):
-    DB.set_text_start_message(text)
-    DB.update_state(id, States.S_WAIT)
+    globals.DB.set_text_start_message(text)
+    globals.DB.update_state(id, States.S_WAIT)
     keyboard = get_keyboard_edit_start_message()
     send_msg(id, text, keyboard)

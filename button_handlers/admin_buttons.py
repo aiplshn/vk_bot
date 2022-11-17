@@ -1,5 +1,5 @@
 from states import States
-from globals import *
+import globals 
 from support import *
 import datetime
 from vk_api.utils import get_random_id
@@ -9,7 +9,7 @@ def own_type(user_id):
 
 def create_messages(user_id, message_id):
     #get state
-    state = DB.get_admin_state(user_id)
+    state = globals.DB.get_admin_state(user_id)
     if user_id == -1:
         return
     elif state == States.S_START:
@@ -21,7 +21,7 @@ def create_messages(user_id, message_id):
                                 [
                                 'send_without_text',
                                 'back_to_start'])
-        DB.update_state(user_id, States.S_SEND_TEXT)
+        globals.DB.update_state(user_id, States.S_SEND_TEXT)
         send_msg(user_id, 'Напиши любое текстовое сообщение без вложений', keyboard, True, message_id, 0)
     print('created')
 
@@ -39,7 +39,7 @@ def operations_admin(id, message_id):
     send_msg(id, 'Выбери действие', keyboard, edit=True, message_id=message_id)
     # send_msg(id, 'Перешли любое сообщение от человека, которого нужно добавить в админы.',
     #          keyboard, edit=True, message_id=message_id)
-    DB.update_state(id, States.S_WAIT)
+    globals.DB.update_state(id, States.S_WAIT)
     print('operations admin')
 
 def add_video(user_id, message_id):
@@ -47,23 +47,23 @@ def add_video(user_id, message_id):
     print('video added')
 
 def add_media(user_id, message_id, state, message, callback_name_back_btn):
-    DB.update_state(user_id, state)
+    globals.DB.update_state(user_id, state)
     keyboard = gen_keyboard(['Назад'], [callback_name_back_btn])
-    VK.messages.edit(
+    globals.VK.messages.edit(
                     user_id=user_id,
-                    random_id=0,
+                    random_id=get_random_id(),
                     keyboard = keyboard,
                     peer_id=user_id,
                     conversation_message_id = message_id,
                     message=message)
 
 def send_without_text(id, message_id):
-    DB.update_state(id, States.S_WAIT)
-    DB.save_text_message('',id)
+    globals.DB.update_state(id, States.S_WAIT)
+    globals.DB.save_text_message('',id)
     keyboard = get_keyboard_edit_message()
-    VK.messages.edit(
+    globals.VK.messages.edit(
                     user_id=id,
-                    random_id=0,
+                    random_id=get_random_id(),
                     keyboard = keyboard,
                     peer_id=id,
                     conversation_message_id = message_id,
@@ -71,9 +71,9 @@ def send_without_text(id, message_id):
 
 
 def apply_edit_msg(id, message_id):
-    attach = DB.get_last_attachments(id)
-    msg = DB.get_last_message(id)
-    forward_message = DB.get_id_forward_message(id)
+    attach = globals.DB.get_last_attachments(id)
+    msg = globals.DB.get_last_message(id)
+    forward_message = globals.DB.get_id_forward_message(id)
     if msg == '' and attach == '' and forward_message == '':
         send_msg(id, 'Ничего не добавлено!')
         return
@@ -91,29 +91,29 @@ def apply_edit_msg(id, message_id):
 
 def send_now(id, message_id):
     send_msg(id, 'Ожидай...', edit=True, message_id=message_id)
-    attach = DB.get_last_attachments(id)
-    msg = DB.get_last_message(id)
-    fwd_msg = DB.get_id_forward_message(id)
-    mailing(msg, attachments=attach,forward_message=fwd_msg, db=DB)
+    attach = globals.DB.get_last_attachments(id)
+    msg = globals.DB.get_last_message(id)
+    fwd_msg = globals.DB.get_id_forward_message(id)
+    mailing(msg, attachments=attach,forward_message=fwd_msg, db=globals.DB)
     send_msg(id, 'Готово!')
-    DB.update_state(id, States.S_START)
-    DB.delete_message_for_admin_edit(id)
+    globals.DB.update_state(id, States.S_START)
+    globals.DB.delete_message_for_admin_edit(id)
 
 def delay_message(id, message_id):
     delay_message_set_datetime(id, message_id)
-    DB.update_state(id, States.S_DATE_TIME)
+    globals.DB.update_state(id, States.S_DATE_TIME)
 
 def delay_today(id, message_id):
     delay_message_set_time_today(id, message_id)
-    DB.update_state(id, States.S_TIME_TODAY)
+    globals.DB.update_state(id, States.S_TIME_TODAY)
 
 def delay_tomorrow(id, message_id):
     delay_message_set_time_tomorrow(id, message_id)
-    DB.update_state(id, States.S_TIME_TOMORROW)
+    globals.DB.update_state(id, States.S_TIME_TOMORROW)
 
 def delay_day_after(id, message_id):
     delay_message_set_time_day_after(id, message_id)
-    DB.update_state(id, States.S_TIME_AFTER_TOMORROW)
+    globals.DB.update_state(id, States.S_TIME_AFTER_TOMORROW)
 
 def show_message(delay_message, id, message_id, edit=True):
     keyboard = gen_keyboard(['Следующее',
@@ -134,111 +134,111 @@ def show_message(delay_message, id, message_id, edit=True):
         send_media(id, delay_message[2], info, keyboard, edit=edit, message_id=message_id, forward_message=str(delay_message[3]))
     else:
         send_msg(id, info, keyboard, edit=edit, message_id=message_id, forward_message=str(delay_message[3]))
-    DB.update_id_show_delay_message(id, delay_message[0])
+    globals.DB.update_id_show_delay_message(id, delay_message[0])
 
 
 def show_delays_messages(id, message_id):
-    delay_message = DB.get_next_delay_message(id)
+    delay_message = globals.DB.get_next_delay_message(id)
     if len(delay_message) == 0:
         keyboard1 = gen_keyboard(['Назад'],
                                  ['back_to_start'])
         send_msg(id, 'Нет отложенных сообщений', keyboard=keyboard1, edit=True, message_id=message_id)
         return
-    DB.update_state(id, States.S_WAIT)
+    globals.DB.update_state(id, States.S_WAIT)
     show_message(delay_message, id, message_id)
     
 
 def next_show_delay_message(id, message_id):
-    delay_message = DB.get_next_delay_message(id)
+    delay_message = globals.DB.get_next_delay_message(id)
     keyboard = gen_keyboard(['Предыдущее',
                               'Назад'],
                              ['prev_show_delay_message',
                               'back_to_start'])
     if len(delay_message) == 0:
         send_msg(id, 'Дальше нет отложенных сообщений', keyboard=keyboard, edit=True, message_id=message_id)
-        DB.update_id_show_delay_message(id, -1)
+        globals.DB.update_id_show_delay_message(id, -1)
         return
     show_message(delay_message, id, message_id)
 
 def prev_show_delay_message(id, message_id):
-    delay_message = DB.get_prev_delay_message(id)
+    delay_message = globals.DB.get_prev_delay_message(id)
     keyboard = gen_keyboard(['Следующее',
                               'Назад'],
                              ['next_show_delay_message',
                               'back_to_start'])
     if len(delay_message) == 0:
         send_msg(id, 'Это первое сообщение', keyboard=keyboard, edit=True, message_id=message_id)
-        DB.update_id_show_delay_message(id, 0)
+        globals.DB.update_id_show_delay_message(id, 0)
         return
     show_message(delay_message, id, message_id)
 
 
 def add_audio(id, message_id):
     add_media(id, message_id, States.S_SEND_AUDIO, 'Отправь голосовое', 'back_send_to_edit')
-    # DB.update_state(id, States.S_SEND_AUDIO)
+    # globals.DB.update_state(id, States.S_SEND_AUDIO)
     # send_msg(id, 'Отправь голосовое', edit=True, message_id=message_id)
 
 def delay_message_for_show(id, message_id):
-    DB.update_state(id, States.S_DATE_TIME_DELAY)
+    globals.DB.update_state(id, States.S_DATE_TIME_DELAY)
     delay_message_set_datetime(id, message_id, True)
 
 def delay_message_for_show(id, message_id):
     delay_message_set_datetime(id, message_id, True)
-    DB.update_state(id, States.S_DATE_TIME_DELAY)
+    globals.DB.update_state(id, States.S_DATE_TIME_DELAY)
 
 def delay_today_for_show(id, message_id):
     delay_message_set_time_today(id, message_id, True)
-    DB.update_state(id, States.S_TIME_TODAY_DELAY)
+    globals.DB.update_state(id, States.S_TIME_TODAY_DELAY)
 
 def delay_tomorrow_for_show(id, message_id):
     delay_message_set_time_tomorrow(id, message_id, True)
-    DB.update_state(id, States.S_TIME_TOMORROW_DELAY)
+    globals.DB.update_state(id, States.S_TIME_TOMORROW_DELAY)
 
 def delay_day_after_for_show(id, message_id):
     delay_message_set_time_day_after(id, message_id, True)
-    DB.update_state(id, States.S_TIME_AFTER_TOMORROW_DELAY)
+    globals.DB.update_state(id, States.S_TIME_AFTER_TOMORROW_DELAY)
 
 def delete_delay_message(id, message_id):
-    DB.delete_message_for_admin_edit(id)
+    globals.DB.delete_message_for_admin_edit(id)
     send_msg(id, 'Готово', edit=True, message_id=message_id)
-    DB.update_state(id, States.S_START)
+    globals.DB.update_state(id, States.S_START)
 
 def back_to_start(id, message_id):
-    DB.update_state(id, States.S_START)
-    DB.update_id_show_delay_message(id, 0)
+    globals.DB.update_state(id, States.S_START)
+    globals.DB.update_id_show_delay_message(id, 0)
     send_start_message(id, True, message_id)
     
 def back_send_to_edit(id, message_id):
-    msg = DB.get_last_message(id)
+    msg = globals.DB.get_last_message(id)
     keyboard = get_keyboard_edit_message()
-    attach_new = DB.get_last_attachments(id)
-    fwd_msg = DB.get_id_forward_message(id)
+    attach_new = globals.DB.get_last_attachments(id)
+    fwd_msg = globals.DB.get_id_forward_message(id)
     if fwd_msg == '':
         send_media(id, attach_new, msg, keyboard, edit=True, message_id=message_id, forward_message=fwd_msg)
     else:
         send_media(id, attach_new, msg, keyboard, forward_message=fwd_msg)
 
 def back_enter_message(id, message_id):
-    DB.delete_message_for_admin_edit(id)
-    DB.update_state(id, States.S_START)
+    globals.DB.delete_message_for_admin_edit(id)
+    globals.DB.update_state(id, States.S_START)
     create_messages(id, message_id)
 
 def back_delay(id, message_id):
     apply_edit_msg(id, message_id)
 
 def back_delay_for_show(id, message_id):
-    DB.update_id_show_delay_message(id, 0)
+    globals.DB.update_id_show_delay_message(id, 0)
     show_delays_messages(id, message_id)
 
 def add_new_admin(id, message_id):
-    DB.update_state(id, States.S_ADD_NEW_ADMIN)
+    globals.DB.update_state(id, States.S_ADD_NEW_ADMIN)
     keyboard = gen_keyboard(['Назад'],
                             ['back_to_admin_operations'])
     send_msg(id, 'Перешли любое сообщение от человека, которого нужно добавить в админы.',
              keyboard=keyboard, edit=True, message_id=message_id)
 
 def delete_admin(id, message_id):
-    DB.update_state(id, States.S_DELETE_ADMIN)
+    globals.DB.update_state(id, States.S_DELETE_ADMIN)
     keyboard = gen_keyboard(['Назад'],
                             ['back_to_admin_operations'])
     send_msg(id, 'Перешли любое сообщение от админа, которого нужно удалить.',
@@ -246,16 +246,16 @@ def delete_admin(id, message_id):
 
 
 def back_to_admin_operations(id, message_id):
-    DB.update_state(id, States.S_WAIT)
+    globals.DB.update_state(id, States.S_WAIT)
     operations_admin(id, message_id)
 
 def update_start_message(id, message_id):
-    DB.update_state(id, States.S_UPDATE_START_MESSAGE)
+    globals.DB.update_state(id, States.S_UPDATE_START_MESSAGE)
     keyboard = gen_keyboard(['Без текста',
                              'Назад'],
                             ['start_message_without_text',
                              'back_to_start_from_edit_start_message'])
-    start_message = DB.get_start_message()
+    start_message = globals.DB.get_start_message()
     edit = True
     info = 'Напиши любое текстовое сообщение без вложений\nТекущее сообщение:\n---------\n'+str(start_message[1])
     if start_message[3] != '':
@@ -266,13 +266,13 @@ def update_start_message(id, message_id):
         send_msg(id, info, keyboard, edit=edit, message_id=message_id, forward_message=str(start_message[3]))
 
 def start_message_without_text(id, message_id):
-    DB.update_state(id, States.S_WAIT)
-    DB.set_text_start_message('')
+    globals.DB.update_state(id, States.S_WAIT)
+    globals.DB.set_text_start_message('')
     keyboard = get_keyboard_edit_start_message()
     send_msg(id, 'Выбери действие:', keyboard, edit=True, message_id=message_id)
 
 # def add_photo_start(id, message_id):
-    # DB.update_state(id, States.S_SEND_PIC_START_MESSAGE)
+    # globals.DB.update_state(id, States.S_SEND_PIC_START_MESSAGE)
 
 def add_photo_start(id, message_id):
     add_media(id, message_id, States.S_SEND_PIC_START_MESSAGE, 'Отправь одно или несколько фото', 'back_send_to_edit_start_message')
@@ -287,7 +287,7 @@ def add_audio_start(id, message_id):
     print('video added')
 
 def back_send_to_edit_start_message(id, message_id):
-    start_msg = DB.get_start_message()
+    start_msg = globals.DB.get_start_message()
     attach = start_msg[2]
     msg = start_msg[1]
     fwd_msg = start_msg[3]
@@ -319,7 +319,7 @@ def apply_edit_msg_start(id, message_id):
 
 
 def check_start_msg() -> bool:
-    start_msg = DB.get_start_message()
+    start_msg = globals.DB.get_start_message()
     attach = start_msg[2]
     msg = start_msg[1]
     fwd_msg = start_msg[3]

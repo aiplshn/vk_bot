@@ -2,8 +2,6 @@ import sqlite3
 import sys
 import traceback
 
-DEFAULT_START_MESSAGE = f"ПРИВЕТ, я бот. Жди сообщения от админа"
-
 class admin:
     id: int
     state: int
@@ -205,15 +203,15 @@ class DBWorker:
         usr.id = 54442110
         self.execute_query(usr.get_query_insert_into_table())
 
-    def __init__(self) -> None:
+    def __init__(self, default_start_message='') -> None:
         try:
             self.connection = sqlite3.connect('vk_bot.db')
             self.cursor = self.connection.cursor()
-            self.drop_tables() #TODO DELETE THIS
+            # self.drop_tables() #TODO DELETE THIS
             res = self.execute_query_select("SELECT COUNT() FROM sqlite_master WHERE type='table';")
             if res[0][0] <= 1:
                 self.create_tables()
-                self.insert_start_message(DEFAULT_START_MESSAGE)
+                self.insert_start_message(default_start_message)
         except sqlite3.Error as er:
             print("Ошибка при подключении к sqlite", er)
             print('SQLite error: %s' % (' '.join(er.args)))
@@ -231,7 +229,7 @@ class DBWorker:
 
     def add_user(self, user_id):
         usr = user()
-        usr.id = user_id()
+        usr.id = user_id
         self.execute_query(usr.get_query_insert_into_table())
 
     def is_user(self, user_id) -> bool:
@@ -385,6 +383,7 @@ class DBWorker:
 
     def get_start_message(self):
         msg = message()
+        #TODO если его нет?
         return self.execute_query_select(msg.get_query_select_start_message())[0]
 
     def set_media_for_start_message(self, attachments):
