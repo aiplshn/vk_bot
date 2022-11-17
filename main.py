@@ -2,17 +2,15 @@ from support import *
 from vk_api.bot_longpoll import VkBotEventType
 import button_handlers.admin_buttons as bh
 from globals import *
-from config import *
+from states import *
 from processing_state import processing_state
 import threading
 import time
 import datetime
+from init import read_config
 
 
-id_admin = 54442110
-id_kate = 292576789
 def monitor_delay_messages():
-    i = 0
     db = DBWorker()
     while True:
         time.sleep(1)
@@ -26,48 +24,42 @@ def monitor_delay_messages():
                 db.delete_message_for_it_id(row_msg[0][0])
 
 
-def send_text(id, text, keyboard=None):
-    post = {'user_id': id,
-            'message': text,
-            'random_id': 0
-            }
-    if keyboard != None:
-        post['keyboard'] = keyboard
-    # print(keyboard)
-    VK_SESSION.method('messages.send', post)
+def start_polling():
+    mailing_thread = threading.Thread(target=monitor_delay_messages)
+    mailing_thread.start()
+    print('start')
+    init = read_config()
+    while init:
+        for event in LONGPOLL.listen():
+            try:
+                if event.type == VkBotEventType.MESSAGE_NEW:
+                    id = event.obj.message['from_id']
+                    print(id)
+                    #Админ
+                    if DB.is_admin(id):
+                        state = DB.get_admin_state(id)
+                        processing_state(event, state)
+                    else:
+                        DB.add_user(id)
+                        send_msg(id, 'Не знаю такой команды')
 
-mailing_thread = threading.Thread(target=monitor_delay_messages)
-mailing_thread.start()
+                elif event.type == VkBotEventType.MESSAGE_EVENT:
+                    #TODO add try catch
+                    user_id = event.obj['user_id']
+                    print(event.object.payload.get('type'))
+                    if DB.is_admin(user_id):
+                        getattr(bh, event.object.payload.get('type'))(int(user_id), event.obj.conversation_message_id)
+                    else:
+                        DB.add_user(user_id)
+                        send_msg(user_id, 'Не знаю такой команды')
 
-print('start')
-while True:
-    for event in LONGPOLL.listen():
-        try:
-            if event.type == VkBotEventType.MESSAGE_NEW:
-                id = event.obj.message['from_id']
-                print(id)
-                #Админ
-                if DB.is_admin(id):
-                    state = DB.get_admin_state(id)
-                    processing_state(event, state)
-                else:
-                    DB.add_user(id)
-                    send_msg(id, 'Не знаю такой команды')
-
-            elif event.type == VkBotEventType.MESSAGE_EVENT:
-                #TODO add try catch
-                user_id = event.obj['user_id']
-                print(event.object.payload.get('type'))
-                if DB.is_admin(user_id):
-                    getattr(bh, event.object.payload.get('type'))(int(user_id), event.obj.conversation_message_id)
-                else:
+                elif event.type == VkBotEventType.MESSAGE_ALLOW:
+                    user_id = int(event.obj['user_id'])
+                    send_msg(user_id, 'ЗДАРОВА')
                     DB.add_user(user_id)
-                    send_msg(user_id, 'Не знаю такой команды')
+            except:
+                print('stop_bot')
+                continue
 
-            elif event.type == VkBotEventType.MESSAGE_ALLOW:
-                user_id = int(event.obj['user_id'])
-                send_msg(user_id, 'ЗДАРОВА')
-                DB.add_user(user_id)
-        except:
-            print('stop_bot')
-            continue
+if __name__ == '__main__':
+    start_polling()

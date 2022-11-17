@@ -1,4 +1,4 @@
-from config import States
+from states import States
 from globals import *
 from support import *
 import datetime
