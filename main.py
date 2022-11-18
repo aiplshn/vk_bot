@@ -31,36 +31,36 @@ def start_polling():
     mailing_thread.start()
     print('start')
     while inited:
-        for event in globals.LONGPOLL.listen():
-            try:
-                if event.type == VkBotEventType.MESSAGE_NEW:
-                    id = event.obj.message['from_id']
-                    print(id)
-                    #Админ
-                    if globals.DB.is_admin(id):
-                        state = globals.DB.get_admin_state(id)
-                        processing_state(event, state)
-                    else:
-                        globals.DB.add_user(id)
-                        send_msg(id, 'Не знаю такой команды')
+        try:
+            for event in globals.LONGPOLL.listen():
+                    if event.type == VkBotEventType.MESSAGE_NEW:
+                        id = event.obj.message['from_id']
+                        print(id)
+                        #Админ
+                        if globals.DB.is_admin(id):
+                            state = globals.DB.get_admin_state(id)
+                            processing_state(event, state)
+                        else:
+                            globals.DB.add_user(id)
+                            send_msg(id, 'Не знаю такой команды')
 
-                elif event.type == VkBotEventType.MESSAGE_EVENT:
-                    #TODO add try catch
-                    user_id = event.obj['user_id']
-                    print(event.object.payload.get('type'))
-                    if globals.DB.is_admin(user_id):
-                        getattr(bh, event.object.payload.get('type'))(int(user_id), event.obj.conversation_message_id)
-                    else:
+                    elif event.type == VkBotEventType.MESSAGE_EVENT:
+                        #TODO add try catch
+                        user_id = event.obj['user_id']
+                        print(event.object.payload.get('type'))
+                        if globals.DB.is_admin(user_id):
+                            getattr(bh, event.object.payload.get('type'))(int(user_id), event.obj.conversation_message_id)
+                        else:
+                            globals.DB.add_user(user_id)
+                            send_msg(user_id, 'Не знаю такой команды')
+
+                    elif event.type == VkBotEventType.MESSAGE_ALLOW:
+                        user_id = int(event.obj['user_id'])
+                        send_msg(user_id, 'ЗДАРОВА')
                         globals.DB.add_user(user_id)
-                        send_msg(user_id, 'Не знаю такой команды')
-
-                elif event.type == VkBotEventType.MESSAGE_ALLOW:
-                    user_id = int(event.obj['user_id'])
-                    send_msg(user_id, 'ЗДАРОВА')
-                    globals.DB.add_user(user_id)
-            except:
-                print('stop_bot')
-                continue
+        except:
+            print('exception')
+            pass
 
 if __name__ == '__main__':
     start_polling()
