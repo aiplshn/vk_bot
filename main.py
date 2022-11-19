@@ -7,26 +7,28 @@ from processing_state import processing_state
 import threading
 import time
 import datetime
+from datetime import timedelta
 from db_worker import DBWorker
 from init import init
 
 
 def monitor_delay_messages():
-    db = DBWorker()
+    db = DBWorker(globals.OWNER_ID)
     while True:
-        time.sleep(1)
+        time.sleep(5)
         row_msg = db.get_early_delay_message()
         if len(row_msg) != 0:
             date_time_msg = datetime.datetime.strptime(row_msg[0][5],"%Y-%m-%d %H:%M:%S")
-            date_time_now = datetime.datetime.now()
+            date_time_now = datetime.datetime.now() + timedelta(hours=int(globals.DELTA_TIME_SERVER))
             delta = (date_time_msg - date_time_now).total_seconds()
+            
             if delta <= 0:
                 mailing(row_msg[0][1], row_msg[0][2], row_msg[0][3], db=db)
                 db.delete_message_for_it_id(row_msg[0][0])
 
 def start_polling():
     inited = init()
-    globals.DB = DBWorker(globals.DEFAULT_START_MESSAGE)
+    globals.DB = DBWorker(globals.OWNER_ID, globals.DEFAULT_START_MESSAGE)
     mailing_thread = threading.Thread(target=monitor_delay_messages)
     mailing_thread.start()
     print('start')

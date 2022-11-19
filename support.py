@@ -75,10 +75,14 @@ def gen_keyboard(labels, type_edits, vk_colors=None):
 def mailing(msg, attachments, forward_message, db):
     ids = db.get_all_users()
     for id_users in ids:
-        if attachments != '':
-            send_media(id_users[0], attachments, msg, forward_message=forward_message)
-        else:
-            send_msg(id_users[0], msg=msg, forward_message=forward_message)
+        try:
+            if attachments != '':
+                send_media(id_users[0], attachments, msg, forward_message=forward_message)
+            else:
+                send_msg(id_users[0], msg=msg, forward_message=forward_message)
+        except:
+            id_owner = db.get_owner_id(globals.OWNER_ID)
+            send_msg(id_owner, f"Не удалось отправить сообщение пользователю {id_users[0]}")
 
 def check_format_datetime(dt: str):
     try:

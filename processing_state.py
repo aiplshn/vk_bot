@@ -6,19 +6,24 @@ import datetime
 def processing_state(event, state):
     user_id = event.obj.message['from_id']
     if state == States.S_START:
-        send_start_message(event.obj.message['from_id'])
+        send_start_message(user_id)
     elif state == States.S_SEND_TEXT:
-        save_text(user_id, event.obj.message['text'])
+        if check_content_type(event, 'text'):
+            save_text(user_id, event.obj.message['text'])
+        else:
+            send_msg(user_id, 'Отправь только текст')
     elif state == States.S_SEND_PIC:
-        #TODO проверка на фото
-        save_media(user_id, collect_attachments(event, 'photo'))
+        if check_content_type(event, 'photo'):
+            save_media(user_id, collect_attachments(event, 'photo'))
+        else:
+            send_msg(user_id, 'Отправь только фото')
     elif state == States.S_SEND_VIDEO:
-        #TODO проверка на видео
-        save_media(user_id, collect_attachments(event, 'video'))
+        if check_content_type(event, 'video'):
+            save_media(user_id, collect_attachments(event, 'video'))
+        else:
+            send_msg(user_id, 'Отправь только видео')
     elif state == States.S_SEND_AUDIO:
         save_voise_message(user_id, event.message['id'])
-    # elif state == States.S_SHOW_DELAY:
-        # pass
     elif state == States.S_ADD_NEW_ADMIN:
         save_new_admin(event)
     elif state == States.S_DELETE_ADMIN:
@@ -50,6 +55,22 @@ def processing_state(event, state):
         save_voise_start_message(user_id, event.message['id'])
     elif state == States.S_WAIT:
         click_on_btn(user_id)
+
+def check_content_type(event, type) -> bool:
+    if type == 'text':
+        if type in event.obj.message:
+            if event.obj.message['text'] != '':
+                return True
+    elif type == 'photo' or type == 'video':
+        if 'attachments' in event.message:
+            count_photos = len(event.message['attachments'])
+            for i in range(count_photos):
+                if type not in event.message['attachments'][i]:
+                    return False
+                return True
+    return False
+    
+
 
 def save_text(id, msg):
     keyboard = get_keyboard_edit_message()

@@ -13,6 +13,7 @@ def read_config() -> bool:
         globals.OWNER_ID = cfg_default['OwnerId']
         globals.DEFAULT_START_MESSAGE = cfg_default['DefaultStartMessage']
         globals.API_VERSION = cfg_default['ApiVersion']
+        globals.DELTA_TIME_SERVER = cfg_default['DeltaTimeServer']
         return True
     except:
         print('Не удалось загрузить конфиг')

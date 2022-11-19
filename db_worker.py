@@ -1,6 +1,4 @@
 import sqlite3
-import sys
-import traceback
 
 class admin:
     id: int
@@ -38,6 +36,9 @@ class admin:
 
     def get_query_id_show_message(self) -> str:
         return f"SELECT id_show_delay_message FROM {self.table_name} WHERE id = {self.id}"
+
+    def get_query_owner_id(self) -> str:
+        return f"SELECT * FROM {self.table_name} WHERE id = {self.id}"
 
 class user:
     id: int
@@ -170,10 +171,10 @@ class DBWorker:
         except sqlite3.Error as er:
             print('SQLite error: %s' % (' '.join(er.args)))
             print("Exception class is: ", er.__class__)
-            print('SQLite traceback: ')
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            print(traceback.format_exception(exc_type, exc_value, exc_tb))
-            self.connection.close()
+            # print('SQLite traceback: ')
+            # exc_type, exc_value, exc_tb = sys.exc_info()
+            # print(traceback.format_exception(exc_type, exc_value, exc_tb))
+            # self.connection.close()
             
 
     def execute_query(self, query: str):
@@ -183,10 +184,10 @@ class DBWorker:
         except sqlite3.Error as er:
             print('SQLite error: %s' % (' '.join(er.args)))
             print("Exception class is: ", er.__class__)
-            print('SQLite traceback: ')
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            print(traceback.format_exception(exc_type, exc_value, exc_tb))
-            self.connection.close()
+            # print('SQLite traceback: ')
+            # exc_type, exc_value, exc_tb = sys.exc_info()
+            # print(traceback.format_exception(exc_type, exc_value, exc_tb))
+            # self.connection.close()
 
     def create_tables(self):
         adm = admin()
@@ -203,7 +204,7 @@ class DBWorker:
         usr.id = 54442110
         self.execute_query(usr.get_query_insert_into_table())
 
-    def __init__(self, default_start_message='') -> None:
+    def __init__(self, owner_id, default_start_message='') -> None:
         try:
             self.connection = sqlite3.connect('vk_bot.db')
             self.cursor = self.connection.cursor()
@@ -212,14 +213,20 @@ class DBWorker:
             if res[0][0] <= 1:
                 self.create_tables()
                 self.insert_start_message(default_start_message)
+            res = self.execute_query_select("SELECT COUNT(*) FROM admin")
+            if res[0][0] == 0:
+                adm = admin()
+                adm.id = owner_id
+                adm.state = 0
+                self.execute_query(adm.get_query_insert_into_table())
         except sqlite3.Error as er:
             print("Ошибка при подключении к sqlite", er)
             print('SQLite error: %s' % (' '.join(er.args)))
-            print("Exception class is: ", er.__class__)
-            print('SQLite traceback: ')
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            print(traceback.format_exception(exc_type, exc_value, exc_tb))
-            self.connection.close()
+            # print("Exception class is: ", er.__class__)
+            # print('SQLite traceback: ')
+            # exc_type, exc_value, exc_tb = sys.exc_info()
+            # print(traceback.format_exception(exc_type, exc_value, exc_tb))
+            # self.connection.close()
 
 
     def __del__(self):
@@ -243,6 +250,11 @@ class DBWorker:
         adm.id = id_new_admin
         adm.state = 0
         self.execute_query(adm.get_query_insert_into_table())
+
+    def get_owner_id(self, owner_id):
+        adm = admin()
+        adm.id = owner_id
+        return self.execute_query_select(adm.get_query_owner_id())[0][0]
 
     def delete_admin(self, id_delete_admin):
         adm = admin()
