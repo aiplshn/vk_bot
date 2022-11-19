@@ -25,5 +25,5 @@ def init() -> bool:
     if res:
         globals.VK_SESSION = vk_api.VkApi(token=globals.GROUP_TOKEN, api_version=globals.API_VERSION)
         globals.VK = globals.VK_SESSION.get_api()
-        globals.LONGPOLL = VkBotLongPoll(globals.VK_SESSION, group_id=globals.GROUP_ID)
+        globals.LONGPOLL = VkBotLongPoll(globals.VK_SESSION, group_id=globals.GROUP_ID, wait=25)
     return res
