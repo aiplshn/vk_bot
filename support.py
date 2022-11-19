@@ -43,7 +43,13 @@ def get_keyboard_edit_start_message():
                         'add_audio_start',
                         'delete_media_start_message',
                         'apply_edit_msg_start',
-                        'back_enter_message_start'])
+                        'back_enter_message_start'],
+                        [VkKeyboardColor.PRIMARY,
+                         VkKeyboardColor.PRIMARY,
+                         VkKeyboardColor.PRIMARY,
+                         VkKeyboardColor.SECONDARY,
+                         VkKeyboardColor.POSITIVE,
+                         VkKeyboardColor.NEGATIVE])
 
 
 def get_keyboard_edit_message():
@@ -58,7 +64,12 @@ def get_keyboard_edit_message():
                         'add_video',
                         'add_audio',
                         'apply_edit_msg',
-                        'back_enter_message'])
+                        'back_enter_message'],
+                        [VkKeyboardColor.PRIMARY,
+                         VkKeyboardColor.PRIMARY,
+                         VkKeyboardColor.PRIMARY,
+                         VkKeyboardColor.POSITIVE,
+                         VkKeyboardColor.NEGATIVE])
 
 def gen_keyboard(labels, type_edits, vk_colors=None):
     rows = len(labels)
@@ -66,7 +77,7 @@ def gen_keyboard(labels, type_edits, vk_colors=None):
         return VkKeyboard()
     keyboard = VkKeyboard(one_time=False, inline=True)
     for i in range(rows):
-        color = VkKeyboardColor.POSITIVE
+        color = VkKeyboardColor.PRIMARY
         if vk_colors != None:
             color = vk_colors[i]
         keyboard.add_callback_button(label=labels[i], color=color, payload={"type": f"{type_edits[i]}"})
@@ -106,7 +117,12 @@ def delay_message_set_datetime(id, message_id, show=False):
                              'delay_today'+suffix,
                              'delay_tomorrow'+suffix,
                              'delay_day_after'+suffix,
-                             'back_delay'+suffix])
+                             'back_delay'+suffix],
+                            [VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.NEGATIVE])
     send_msg(id,
              "Выберите когда отправить или введите дату и время в формате 'ДД.ММ.ГГГГ ЧЧ:мм'.",
              keyboard=keyboard, edit=True, message_id=message_id)
@@ -124,7 +140,12 @@ def delay_message_set_time_today(id, message_id, show=False):
                              'delay_today'+suffix,
                              'delay_tomorrow'+suffix,
                              'delay_day_after'+suffix,
-                             'back_delay'+suffix])
+                             'back_delay'+suffix],
+                            [VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.NEGATIVE])
     send_msg(id,
              "Введите время в формате 'ЧЧ:мм'.",
              keyboard=keyboard, edit=True, message_id=message_id)
@@ -142,7 +163,12 @@ def delay_message_set_time_tomorrow(id, message_id, show=False):
                              'delay_today'+suffix,
                              'delay_tomorrow'+suffix,
                              'delay_day_after'+suffix,
-                             'back_delay'+suffix])
+                             'back_delay'+suffix],
+                            [VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.NEGATIVE])
     send_msg(id,
              "Введите время в формате 'ЧЧ:мм'.",
              keyboard=keyboard, edit=True, message_id=message_id)
@@ -160,7 +186,12 @@ def delay_message_set_time_day_after(id, message_id, show=False):
                              'delay_today'+suffix,
                              'delay_tomorrow'+suffix,
                              'delay_day_after'+suffix,
-                             'back_delay'+suffix])
+                             'back_delay'+suffix],
+                            [VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.NEGATIVE])
     send_msg(id,
              "Введите время в формате 'ЧЧ:мм'.",
              keyboard=keyboard, edit=True, message_id=message_id)
@@ -174,7 +205,11 @@ def send_start_message(id, edit = False, message_id=0):
                         ['create_messages',
                          'show_delays_messages',
                          'operations_admin',
-                         'update_start_message'])
+                         'update_start_message'],
+                        [VkKeyboardColor.PRIMARY,
+                         VkKeyboardColor.PRIMARY,
+                         VkKeyboardColor.PRIMARY,
+                         VkKeyboardColor.PRIMARY])
     admin_start_message = "Привет, Админ. Что нужно сделать?"
 
     send_msg(id, admin_start_message, keyboard, edit, message_id, 0)

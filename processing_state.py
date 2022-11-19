@@ -178,7 +178,8 @@ def save_new_admin(event):
     else:
         if globals.DB.is_admin(id_new_admin):
             keyboard = gen_keyboard(['Назад'],
-                                    ['back_to_admin_operations'])
+                                    ['back_to_admin_operations'],
+                                    [VkKeyboardColor.NEGATIVE])
             send_msg(from_id, 'Админ уже добавлен', keyboard)
         else:
             globals.DB.add_new_admin(id_new_admin)
@@ -200,7 +201,8 @@ def delete_from_admin(event):
             send_start_message(from_id)
         else:
             keyboard = gen_keyboard(['Назад'],
-                                    ['back_to_admin_operations'])
+                                    ['back_to_admin_operations'],
+                                    [VkKeyboardColor.NEGATIVE])
             send_msg(from_id, 'Такого админа нет', keyboard)
 
         

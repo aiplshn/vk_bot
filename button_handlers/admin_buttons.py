@@ -20,7 +20,9 @@ def create_messages(user_id, message_id):
                                 'Назад'],
                                 [
                                 'send_without_text',
-                                'back_to_start'])
+                                'back_to_start'],
+                                [VkKeyboardColor.PRIMARY,
+                                 VkKeyboardColor.NEGATIVE])
         globals.DB.update_state(user_id, States.S_SEND_TEXT)
         send_msg(user_id, 'Напиши любое текстовое сообщение без вложений', keyboard, True, message_id, 0)
     print('created')
@@ -35,7 +37,10 @@ def operations_admin(id, message_id):
                              'Назад'],
                             ['add_new_admin',
                              'delete_admin',
-                             'back_to_start'])
+                             'back_to_start'],
+                            [VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.SECONDARY,
+                             VkKeyboardColor.NEGATIVE])
     send_msg(id, 'Выбери действие', keyboard, edit=True, message_id=message_id)
     # send_msg(id, 'Перешли любое сообщение от человека, которого нужно добавить в админы.',
     #          keyboard, edit=True, message_id=message_id)
@@ -48,7 +53,7 @@ def add_video(user_id, message_id):
 
 def add_media(user_id, message_id, state, message, callback_name_back_btn):
     globals.DB.update_state(user_id, state)
-    keyboard = gen_keyboard(['Назад'], [callback_name_back_btn])
+    keyboard = gen_keyboard(['Назад'], [callback_name_back_btn], [VkKeyboardColor.NEGATIVE])
     globals.VK.messages.edit(
                     user_id=user_id,
                     random_id=get_random_id(),
@@ -83,7 +88,10 @@ def apply_edit_msg(id, message_id):
                              'Назад'],
                             ['send_now',
                              'delay_message',
-                             'back_send_to_edit'])
+                             'back_send_to_edit'],
+                            [VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.SECONDARY,
+                             VkKeyboardColor.NEGATIVE])
 
 
     send_msg(id, 'Принято. Выберите дальнейшее действие:',keyboard=keyboard, edit=True, message_id=message_id)
@@ -117,15 +125,20 @@ def delay_day_after(id, message_id):
 
 def show_message(delay_message, id, message_id, edit=True):
     keyboard = gen_keyboard(['Следующее',
-                              'Предыдущее',
-                              'Изменить время',
-                              'Удалить сообщение',
-                              'Назад'],
-                             ['next_show_delay_message',
-                              'prev_show_delay_message',
-                              'delay_message_for_show',
-                              'delete_delay_message',
-                              'back_to_start'])
+                             'Предыдущее',
+                             'Изменить время',
+                             'Удалить сообщение',
+                             'Назад'],
+                            ['next_show_delay_message',
+                             'prev_show_delay_message',
+                             'delay_message_for_show',
+                             'delete_delay_message',
+                             'back_to_start'],
+                            [VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.SECONDARY,
+                             VkKeyboardColor.NEGATIVE])
     dt = datetime.datetime.strptime(delay_message[5], "%Y-%m-%d %H:%M:%S")
     info = f"Дата и время рассылки: {dt.day}.{dt.month}.{dt.year} {dt.hour}:{dt.minute}\n----------\n"+delay_message[1]
     if delay_message[3] != '':
@@ -141,7 +154,8 @@ def show_delays_messages(id, message_id):
     delay_message = globals.DB.get_next_delay_message(id)
     if len(delay_message) == 0:
         keyboard1 = gen_keyboard(['Назад'],
-                                 ['back_to_start'])
+                                 ['back_to_start'],
+                                 [VkKeyboardColor.NEGATIVE])
         send_msg(id, 'Нет отложенных сообщений', keyboard=keyboard1, edit=True, message_id=message_id)
         return
     globals.DB.update_state(id, States.S_WAIT)
@@ -152,8 +166,10 @@ def next_show_delay_message(id, message_id):
     delay_message = globals.DB.get_next_delay_message(id)
     keyboard = gen_keyboard(['Предыдущее',
                               'Назад'],
-                             ['prev_show_delay_message',
-                              'back_to_start'])
+                            ['prev_show_delay_message',
+                             'back_to_start'],
+                            [VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.NEGATIVE])
     if len(delay_message) == 0:
         send_msg(id, 'Дальше нет отложенных сообщений', keyboard=keyboard, edit=True, message_id=message_id)
         globals.DB.update_id_show_delay_message(id, -1)
@@ -164,8 +180,10 @@ def prev_show_delay_message(id, message_id):
     delay_message = globals.DB.get_prev_delay_message(id)
     keyboard = gen_keyboard(['Следующее',
                               'Назад'],
-                             ['next_show_delay_message',
-                              'back_to_start'])
+                            ['next_show_delay_message',
+                             'back_to_start'],
+                            [VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.NEGATIVE])
     if len(delay_message) == 0:
         send_msg(id, 'Это первое сообщение', keyboard=keyboard, edit=True, message_id=message_id)
         globals.DB.update_id_show_delay_message(id, 0)
@@ -233,14 +251,16 @@ def back_delay_for_show(id, message_id):
 def add_new_admin(id, message_id):
     globals.DB.update_state(id, States.S_ADD_NEW_ADMIN)
     keyboard = gen_keyboard(['Назад'],
-                            ['back_to_admin_operations'])
+                            ['back_to_admin_operations'],
+                            [VkKeyboardColor.NEGATIVE])
     send_msg(id, 'Перешли любое сообщение от человека, которого нужно добавить в админы.',
              keyboard=keyboard, edit=True, message_id=message_id)
 
 def delete_admin(id, message_id):
     globals.DB.update_state(id, States.S_DELETE_ADMIN)
     keyboard = gen_keyboard(['Назад'],
-                            ['back_to_admin_operations'])
+                            ['back_to_admin_operations'],
+                            [VkKeyboardColor.NEGATIVE])
     send_msg(id, 'Перешли любое сообщение от админа, которого нужно удалить.',
              keyboard=keyboard, edit=True, message_id=message_id)
 
@@ -254,7 +274,9 @@ def update_start_message(id, message_id):
     keyboard = gen_keyboard(['Без текста',
                              'Назад'],
                             ['start_message_without_text',
-                             'back_to_start_from_edit_start_message'])
+                             'back_to_start_from_edit_start_message'],
+                            [VkKeyboardColor.PRIMARY,
+                             VkKeyboardColor.NEGATIVE])
     start_message = globals.DB.get_start_message()
     edit = True
     info = 'Напиши любое текстовое сообщение без вложений\nТекущее сообщение:\n---------\n'+str(start_message[1])
