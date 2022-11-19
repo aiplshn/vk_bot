@@ -280,7 +280,7 @@ def update_start_message(id, message_id):
     start_message = globals.DB.get_start_message()
     edit = True
     info = 'Напиши любое текстовое сообщение без вложений\nТекущее сообщение:\n---------\n'+str(start_message[1])
-    if start_message[3] != None:
+    if start_message[3] != None and start_message[3] != '':
         edit = False
     if start_message[2] != '':
         send_media(id, start_message[2], info, keyboard, edit=edit, message_id=message_id, forward_message=str(start_message[3]))
