@@ -125,7 +125,7 @@ class message:
         return f"SELECT * FROM {self.table_name} WHERE is_start_message = 1 LIMIT 1"
 
     def get_query_update_start_message_attachments(self) -> str:
-        return f"UPDATE {self.table_name} SET media_attachments='{self.media_attachments}' WHERE is_start_message=1" 
+        return f"UPDATE {self.table_name} SET media_attachments={self.media_attachments} WHERE is_start_message=1" 
     
     def get_query_update_start_message_id_voise_message(self) -> str:
         return f"UPDATE {self.table_name} SET id_audio_message_str={self.id_audio_message_str} WHERE is_start_message=1"
@@ -214,6 +214,8 @@ class DBWorker:
             res = self.execute_query_select("SELECT COUNT() FROM sqlite_master WHERE type='table';")
             if res[0][0] <= 1:
                 self.create_tables()
+            res = self.execute_query_select("SELECT COUNT() FROM message WHERE is_start_message = 1")
+            if res[0][0] == 0:
                 self.insert_start_message(default_start_message)
             res = self.execute_query_select("SELECT COUNT(*) FROM admin")
             if res[0][0] == 0:
@@ -221,6 +223,7 @@ class DBWorker:
                 adm.id = owner_id
                 adm.state = 0
                 self.execute_query(adm.get_query_insert_into_table())
+            self.execute_query("UPDATE admin SET state = 0, id_show_delay_message = 0")
         except sqlite3.Error as er:
             print("Ошибка при подключении к sqlite", er)
             print('SQLite error: %s' % (' '.join(er.args)))
@@ -398,22 +401,25 @@ class DBWorker:
     def get_start_message(self):
         msg = message()
         #TODO если его нет?
-        res = self.execute_query_select(msg.get_query_select_start_message())[0]
-        if res[1] == '':
-            return [0, self.default_start_message,'',None,None,None,1]
-        else:
-            return res
+        return self.execute_query_select(msg.get_query_select_start_message())[0]
 
     def set_media_for_start_message(self, attachments):
         msg = message()
-        last_msg = self.get_start_message()
-        last_attachment = last_msg[2]
-        if last_attachment != '':
-            msg.media_attachments = last_attachment + "," + attachments
+        if attachments != '':
+            last_msg = self.get_start_message()
+            last_attachment = last_msg[2]
+            if last_attachment != '' and last_attachment != None:
+                msg.media_attachments = last_attachment + "," + attachments
+            else:
+                msg.media_attachments = attachments
+            temp = msg.media_attachments
+            msg.media_attachments = "'" + msg.media_attachments + "'"
+            self.execute_query(msg.get_query_update_start_message_attachments())
+            return temp
         else:
-            msg.media_attachments = attachments
-        self.execute_query(msg.get_query_update_start_message_attachments())
-        return msg.media_attachments
+            msg.media_attachments = "''"
+            self.execute_query(msg.get_query_update_start_message_attachments())
+            return ''
 
     def set_voise_message_for_start_message(self, fwd_msg):
         msg = message()

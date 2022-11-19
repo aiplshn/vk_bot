@@ -37,6 +37,7 @@ def start_polling():
             for event in globals.LONGPOLL.listen():
                     if event.type == VkBotEventType.MESSAGE_NEW:
                         id = event.obj.message['from_id']
+                        # send_hello_message(id)
                         print(id)
                         #Админ
                         if globals.DB.is_admin(id):
@@ -64,9 +65,8 @@ def start_polling():
 
                     elif event.type == VkBotEventType.MESSAGE_ALLOW:
                         user_id = int(event.obj['user_id'])
-                        start_message = globals.DB.get_start_message()
-                        send_msg(user_id, start_message[1])
-                        globals.DB.add_user(user_id)
+                        send_hello_message(user_id)
+                        
                     # id = event.obj.message['from_id']
                     # start_message = globals.DB.get_start_message()
                     # send_msg(id, start_message)

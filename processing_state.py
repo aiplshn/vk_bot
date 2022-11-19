@@ -48,9 +48,15 @@ def processing_state(event, state):
     elif state == States.S_UPDATE_START_MESSAGE:
         save_text_start_message(user_id, event.obj.message['text'])
     elif state == States.S_SEND_PIC_START_MESSAGE:
-        save_media_start_message(user_id, collect_attachments(event, 'photo'))
+        if check_content_type(event, 'photo'):
+            save_media_start_message(user_id, collect_attachments(event, 'photo'))
+        else:
+            send_msg(user_id, 'Отправь только фото')
     elif state == States.S_SEND_VIDEO_START_MESSAGE:
-        save_media_start_message(user_id, collect_attachments(event, 'video'))
+        if check_content_type(event, 'video'):
+            save_media_start_message(user_id, collect_attachments(event, 'video'))
+        else:
+            send_msg(user_id, 'Отправь только видео')
     elif state == States.S_SEND_AUDIO_START_MESSAGE:
         save_voise_start_message(user_id, event.message['id'])
     elif state == States.S_WAIT:
@@ -102,14 +108,17 @@ def save_media(id, attachments):
     msg = globals.DB.get_last_message(id)
     keyboard = get_keyboard_edit_message()
     attach_new = globals.DB.save_media(id, attachments)
-    send_media(id, attach_new, msg, keyboard)#TODO add fwd_msg
+    fwd = globals.DB.get_id_forward_message(id)
+    send_media(id, attach_new, msg, keyboard, forward_message=fwd)#TODO add fwd_msg
     globals.DB.update_state(id, States.S_WAIT) 
 
 def save_media_start_message(id, attachments):
-    msg = globals.DB.get_start_message()[1]
+    start_message = globals.DB.get_start_message()
+    fwd = start_message[3]
+    msg = start_message[1]
     keyboard = get_keyboard_edit_start_message()
     attach_new = globals.DB.set_media_for_start_message(attachments)
-    send_media(id, attach_new, msg, keyboard)
+    send_media(id, attach_new, msg, keyboard, forward_message=fwd)
     globals.DB.update_state(id, States.S_WAIT)
 
 def click_on_btn(id):
@@ -215,6 +224,8 @@ def fail_check_admin(id, del_add: bool): # del_add = True - del, False - add
 
 def save_text_start_message(id, text):
     globals.DB.set_text_start_message(text)
+    globals.DB.set_media_for_start_message('NULL')
+    globals.DB.set_voise_message_for_start_message('NULL')
     globals.DB.update_state(id, States.S_WAIT)
     keyboard = get_keyboard_edit_start_message()
     send_msg(id, text, keyboard)

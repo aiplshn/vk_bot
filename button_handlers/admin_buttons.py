@@ -213,7 +213,7 @@ def back_send_to_edit(id, message_id):
     keyboard = get_keyboard_edit_message()
     attach_new = globals.DB.get_last_attachments(id)
     fwd_msg = globals.DB.get_id_forward_message(id)
-    if fwd_msg == '':
+    if fwd_msg == '' or fwd_msg == None:
         send_media(id, attach_new, msg, keyboard, edit=True, message_id=message_id, forward_message=fwd_msg)
     else:
         send_media(id, attach_new, msg, keyboard, forward_message=fwd_msg)
@@ -258,7 +258,7 @@ def update_start_message(id, message_id):
     start_message = globals.DB.get_start_message()
     edit = True
     info = 'Напиши любое текстовое сообщение без вложений\nТекущее сообщение:\n---------\n'+str(start_message[1])
-    if start_message[3] != '':
+    if start_message[3] != None:
         edit = False
     if start_message[2] != '':
         send_media(id, start_message[2], info, keyboard, edit=edit, message_id=message_id, forward_message=str(start_message[3]))
@@ -268,6 +268,8 @@ def update_start_message(id, message_id):
 def start_message_without_text(id, message_id):
     globals.DB.update_state(id, States.S_WAIT)
     globals.DB.set_text_start_message('')
+    globals.DB.set_media_for_start_message('')
+    globals.DB.set_voise_message_for_start_message('NULL')
     keyboard = get_keyboard_edit_start_message()
     send_msg(id, 'Выбери действие:', keyboard, edit=True, message_id=message_id)
 
@@ -323,6 +325,16 @@ def check_start_msg() -> bool:
     attach = start_msg[2]
     msg = start_msg[1]
     fwd_msg = start_msg[3]
-    if attach == '' and msg == '' and fwd_msg == '':
+    if (attach == '' or attach == None) and msg == '' and fwd_msg == None:
         return False
     return True
+
+def delete_media_start_message(id, message_id):
+    msg = globals.DB.get_start_message()[1]
+    keyboard = get_keyboard_edit_start_message()
+    globals.DB.set_media_for_start_message('')
+    globals.DB.set_voise_message_for_start_message('NULL')
+    if msg == '':
+        msg = 'Выбери действие:'
+    send_msg(id, msg, keyboard, edit=True, message_id=message_id)
+    globals.DB.update_state(id, States.S_WAIT)

@@ -34,12 +34,14 @@ def get_keyboard_edit_start_message():
                         'Добавить фото',
                         'Добавить видео',
                         'Добавить аудио',
+                        'Удалить вложения',
                         'Готово',
                         'Назад'],
                         [
                         'add_photo_start',
                         'add_video_start',
                         'add_audio_start',
+                        'delete_media_start_message',
                         'apply_edit_msg_start',
                         'back_enter_message_start'])
 
@@ -176,3 +178,11 @@ def send_start_message(id, edit = False, message_id=0):
     admin_start_message = "Привет, Админ. Что нужно сделать?"
 
     send_msg(id, admin_start_message, keyboard, edit, message_id, 0)
+
+def send_hello_message(user_id):
+    start_message = globals.DB.get_start_message()
+    if start_message[2] != '':
+        send_media(user_id, start_message[2], msg=start_message[1], forward_message=start_message[3])
+    else:
+        send_msg(user_id, start_message[1],forward_message=start_message[3])
+    globals.DB.add_user(user_id)
