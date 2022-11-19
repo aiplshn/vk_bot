@@ -44,7 +44,10 @@ def start_polling():
                             processing_state(event, state)
                         else:
                             globals.DB.add_user(id)
-                            send_msg(id, 'Не знаю такой команды')
+                            if 'payload' in event.obj.message:
+                                if event.obj.message['payload'] == '{"command":"start"}':
+                                    continue
+                            send_msg(id, globals.ANSWER_TO_USER)
 
                     elif event.type == VkBotEventType.MESSAGE_EVENT:
                         #TODO add try catch
@@ -54,12 +57,20 @@ def start_polling():
                             getattr(bh, event.object.payload.get('type'))(int(user_id), event.obj.conversation_message_id)
                         else:
                             globals.DB.add_user(user_id)
-                            send_msg(user_id, 'Не знаю такой команды')
+                            if 'payload' in event.obj.message:
+                                if event.obj.message['payload'] == '{"command":"start"}':
+                                    continue
+                            send_msg(user_id, globals.ANSWER_TO_USER)
 
                     elif event.type == VkBotEventType.MESSAGE_ALLOW:
                         user_id = int(event.obj['user_id'])
-                        send_msg(user_id, 'ЗДАРОВА')
+                        start_message = globals.DB.get_start_message()
+                        send_msg(user_id, start_message[1])
                         globals.DB.add_user(user_id)
+                    # id = event.obj.message['from_id']
+                    # start_message = globals.DB.get_start_message()
+                    # send_msg(id, start_message)
+                    # globals.DB.add_user(id)
         except:
             print('exception')
             pass

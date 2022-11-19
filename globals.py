@@ -11,6 +11,7 @@ VK_SESSION = None
 VK = None
 LONGPOLL = None
 DELTA_TIME_SERVER = 0
+ANSWER_TO_USER = 'Не знаю такой команды'
 # VK_SESSION = vk_api.VkApi(token=GROUP_TOKEN, api_version=API_VERSION)
 # VK = VK_SESSION.get_api()
 # LONGPOLL = VkBotLongPoll(VK_SESSION, group_id=GROUP_ID)

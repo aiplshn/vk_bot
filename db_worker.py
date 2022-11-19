@@ -205,6 +205,8 @@ class DBWorker:
         self.execute_query(usr.get_query_insert_into_table())
 
     def __init__(self, owner_id, default_start_message='') -> None:
+        if default_start_message != '':
+            self.default_start_message = default_start_message
         try:
             self.connection = sqlite3.connect('vk_bot.db')
             self.cursor = self.connection.cursor()
@@ -396,7 +398,11 @@ class DBWorker:
     def get_start_message(self):
         msg = message()
         #TODO если его нет?
-        return self.execute_query_select(msg.get_query_select_start_message())[0]
+        res = self.execute_query_select(msg.get_query_select_start_message())[0]
+        if res[1] == '':
+            return [0, self.default_start_message,'',None,None,None,1]
+        else:
+            return res
 
     def set_media_for_start_message(self, attachments):
         msg = message()
