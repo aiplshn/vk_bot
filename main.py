@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from support import *
 from vk_api.bot_longpoll import VkBotEventType
 import button_handlers.admin_buttons as bh

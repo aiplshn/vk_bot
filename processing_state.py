@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from states import *
 from support import *
 import globals

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import configparser
 import globals
 import vk_api

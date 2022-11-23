@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import sqlite3
 
 class admin:
@@ -197,12 +199,12 @@ class DBWorker:
         self.execute_query(usr.get_query_create_table())
         self.execute_query(msg.get_query_create_table())
 
-        #TODO DELETE
-        adm.id = 54442110
-        adm.state = 0
-        self.execute_query(adm.get_query_insert_into_table())
-        usr.id = 54442110
-        self.execute_query(usr.get_query_insert_into_table())
+        # #TODO DELETE
+        # adm.id = 54442110
+        # adm.state = 0
+        # self.execute_query(adm.get_query_insert_into_table())
+        # usr.id = 54442110
+        # self.execute_query(usr.get_query_insert_into_table())
 
     def __init__(self, owner_id, default_start_message='') -> None:
         if default_start_message != '':

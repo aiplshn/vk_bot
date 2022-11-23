@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 import globals
 import datetime

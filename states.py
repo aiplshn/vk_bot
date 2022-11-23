@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 class States():
     S_START = 0  # Начало нового диалога
 
