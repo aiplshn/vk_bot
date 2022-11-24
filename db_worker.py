@@ -226,6 +226,7 @@ class DBWorker:
                 adm.state = 0
                 self.execute_query(adm.get_query_insert_into_table())
             self.execute_query("UPDATE admin SET state = 0, id_show_delay_message = 0")
+            self.execute_query("PRAGMA encoding = 'UTF-8';")
         except sqlite3.Error as er:
             print("Ошибка при подключении к sqlite", er)
             print('SQLite error: %s' % (' '.join(er.args)))

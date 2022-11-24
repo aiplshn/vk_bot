@@ -222,6 +222,7 @@ def delete_delay_message(id, message_id):
     globals.DB.delete_message_for_admin_edit(id)
     send_msg(id, 'Готово', edit=True, message_id=message_id)
     globals.DB.update_state(id, States.S_START)
+    globals.DB.update_id_show_delay_message(id, 0)
 
 def back_to_start(id, message_id):
     globals.DB.update_state(id, States.S_START)
