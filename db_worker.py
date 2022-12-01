@@ -228,7 +228,6 @@ class DBWorker:
             self.execute_query("UPDATE admin SET state = 0, id_show_delay_message = 0")
             self.execute_query("PRAGMA encoding = 'UTF-8';")
         except sqlite3.Error as er:
-            print("Ошибка при подключении к sqlite", er)
             print('SQLite error: %s' % (' '.join(er.args)))
             # print("Exception class is: ", er.__class__)
             # print('SQLite traceback: ')
@@ -277,7 +276,7 @@ class DBWorker:
         msg.text = "'"+text+"'"
 
         if self.is_admin(id_admin):
-            print(msg.get_query_insert_into_table())
+            #print(msg.get_query_insert_into_table())
             self.execute_query(msg.get_query_insert_into_table())
 
     def get_last_message(self, id) -> str:
@@ -304,6 +303,7 @@ class DBWorker:
         msg = message()
         msg.id_admin = id
         last_msg = self.execute_query_select(msg.get_query_last_message())
+        #print(last_msg)
         return last_msg[0][2]
 
     def get_all_users(self):

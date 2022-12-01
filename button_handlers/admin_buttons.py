@@ -78,6 +78,7 @@ def send_without_text(id, message_id):
 
 
 def apply_edit_msg(id, message_id):
+    print("send msg: apply edit msg")
     attach = globals.DB.get_last_attachments(id)
     msg = globals.DB.get_last_message(id)
     forward_message = globals.DB.get_id_forward_message(id)
@@ -94,7 +95,6 @@ def apply_edit_msg(id, message_id):
                             [VkKeyboardColor.PRIMARY,
                              VkKeyboardColor.SECONDARY,
                              VkKeyboardColor.NEGATIVE])
-
 
     send_msg(id, 'Принято. Выберите дальнейшее действие:',keyboard=keyboard, edit=True, message_id=message_id)
 

@@ -103,7 +103,6 @@ def collect_attachments(event, media_type) -> str:
             event.message['attachments'][i][media_type]['access_key'])
         if i != count_photos-1:
             attachments += ','
-    print(attachments)
     return attachments
 
 def save_media(id, attachments):
