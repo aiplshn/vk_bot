@@ -16,7 +16,8 @@ def read_config() -> bool:
         globals.DEFAULT_START_MESSAGE = cfg_default['DefaultStartMessage']
         globals.API_VERSION = cfg_default['ApiVersion']
         globals.DELTA_TIME_SERVER = cfg_default['DeltaTimeServer']
-        globals.ANSWER_TO_USER = cfg_default['AnswerToUser']
+        tmp = cfg_default['AnswerToUser']
+        globals.ANSWER_TO_USER = tmp.replace('\\n','\n')
         return True
     except:
         print('Не удалось загрузить конфиг')
